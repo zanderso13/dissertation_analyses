@@ -52,8 +52,8 @@ PID = strcat('sub-',numPID);
 fprintf(['Preparing 1st level model for ' task ' task for ' PID ' / ' ses], ['Overwrite = ' num2str(overwrite)]);
 
 
-ndummies = 2;
-TR = 2.05;
+ndummies = 10;
+
 
 %% Model for MID task. First pass at first levels --> activation
 if are_you_doing_activation_first_levels == 1
@@ -80,7 +80,7 @@ if are_you_doing_activation_first_levels == 1
     
         % fmriprep output
         confound_fname = filenames(fullfile(confound_dir, strcat(PID,'*',task,'_ses-2_run-',num2str(run),'*confounds*.mat')));
-    
+	    
         % choose which matrix to use
         load(confound_fname{1});
     
@@ -96,8 +96,8 @@ if are_you_doing_activation_first_levels == 1
         %% nuisance covs
     
         % fmriprep output
-        confound_fname = filenames(fullfile(confound_dir, PID, strcat(PID,'*mid_ses-2_run-',num2str(run),'*confounds*.mat')));
-    
+        confound_fname = filenames(fullfile(confound_dir, strcat(PID,'*',task,'_ses-2_run-',num2str(run),'*confounds*.mat')));
+    	
         % choose which matrix to use
         load(confound_fname{1});
     
