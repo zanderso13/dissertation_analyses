@@ -79,7 +79,7 @@ if are_you_doing_activation_first_levels == 1
         %% nuisance covs
     
         % fmriprep output
-        confound_fname = filenames(fullfile(confound_dir, PID, strcat(PID,'*mid_ses-2_run-',num2str(run),'*confounds*.mat')));
+        confound_fname = filenames(fullfile(confound_dir, strcat(PID,'*',task,'_ses-2_run-',num2str(run),'*confounds*.mat')));
     
         % choose which matrix to use
         load(confound_fname{1});
