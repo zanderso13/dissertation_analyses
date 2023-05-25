@@ -7,20 +7,30 @@ if nargin==0 % defaults just for testing
 end
 
 are_you_doing_activation_first_levels = 1;
-are_you_doing_ppi_first_levels = 1;
+% if you're doing resting state analysis, next line should be set to 0
+are_you_doing_ppi_first_levels = 0;
 
-contrast = 'consumption';
+% the next two lines are a bit redundant, but it's how I've tried to get
+% around the different naming conventions that I'm used to seeing. There
+% are places throughout this script that reference these strings as part of
+% file names that SPM is either reading in or outputting. 
+
+task = 'rest'; % 'rest', 'mid'
+contrast = 'rest'; % anticipation, rest, consumption
+
+% the next line only applies if you're doing ppi
 seed_region = 'Oldham_Con'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldham_Loss (VS); consumption: Amygdala, OFC, Oldham_Con (VS)
 overwrite = 1;
 ses = 2;
 run = 2;
 
 % Define some paths
-basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging';
+basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/';
 
 % directories
-% first is where your activation related stats files will be output to
-fl_dir = fullfile(basedir,'/first_levels_phil/activation');
+% first is where your activation related stats files will be output to. For
+% rest, change it to rest! For mid change it to activation.
+fl_dir = fullfile(basedir,'/zach_and_nina_first_levels/rest');
 % next is where the preprocessed data is
 preproc_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data';
 % where framewise displacement files will be saved
@@ -28,18 +38,18 @@ save_dir = fullfile(basedir,'/first_levels/FD');
 % directory where I'm storing timing files for the MID
 timing_dir = fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_spm_timing_baseline/run-',num2str(run)),contrast);
 % this is where the ppi specific models will be output
-ppi_fl_dir = fullfile(basedir,'/first_levels_phil/ppi');
+ppi_fl_dir = fullfile(basedir,'/zach_and_nina_first_levels/ppi');
 % this is where masks for the current study are held
 seed_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
 % this is where confound files are. these are distilled separately and then
 % implemented here
-confound_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/confound_phil';
+confound_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/first_level_confounds_dissertation';
 
 numPID = num2str(PID);
 PID = strcat('sub-',numPID);
 
 
-fprintf(['Preparing 1st level model for MID task for ' PID ' / ' ses], ['Overwrite = ' num2str(overwrite)]);
+fprintf(['Preparing 1st level model for ' task ' task for ' PID ' / ' ses], ['Overwrite = ' num2str(overwrite)]);
 
 
 ndummies = 2;
@@ -51,36 +61,54 @@ if are_you_doing_activation_first_levels == 1
     in{1} = {fullfile(fl_dir, PID, strcat('ses-',num2str(ses)), contrast, strcat('run-', num2str(run)))};
 
     % preproc images
-    in{2} = cellstr(spm_select('ExtFPList', preproc_dir, strcat('^ssub-',numPID,'.*task-MID_run-',num2str(run),'_space-MNI152NLin6Asym_res-2_desc-preproc_bold.nii'), ndummies+1:9999));
+    in{2} = cellstr(spm_select('ExtFPList', preproc_dir, strcat('^ssub-',numPID,'.*task-', task,'_run-',num2str(run),'_space-MNI152NLin6Asym_res-2_desc-preproc_bold.nii'), ndummies+1:9999));
 
     if isempty(in{2}{1})
         warning('No preprocd functional found')
         return
     end
-
-    % onset files
-    in{3} = filenames(fullfile(timing_dir, strcat(numPID,'*')));
-
-    if isempty(in{3})
-        warning('No modeling found (behav data might be missing)')
-        return
-    end
-
-    %% nuisance covs
-
-    % fmriprep output
-    confound_fname = filenames(fullfile(confound_dir, PID, strcat(PID,'*mid_ses-2_run-',num2str(run),'*confounds*.mat')));
-
-    % choose which matrix to use
-    load(confound_fname{1});
-
-   
-    in{4} = {confound_fname{1}};
-
-    % checks
-    if any(cellfun( @(x) isempty(x{1}), in))
-        in
-        error('Some input to the model is missing')
+    
+    if strcmp(task,'mid') == 1
+        % onset files
+        in{3} = filenames(fullfile(timing_dir, strcat(numPID,'*')));
+    
+        if isempty(in{3})
+            warning('No modeling found (behav data might be missing)')
+            return
+        end
+        %% nuisance covs
+    
+        % fmriprep output
+        confound_fname = filenames(fullfile(confound_dir, PID, strcat(PID,'*mid_ses-2_run-',num2str(run),'*confounds*.mat')));
+    
+        % choose which matrix to use
+        load(confound_fname{1});
+    
+       
+        in{4} = {confound_fname{1}};
+    
+        % checks
+        if any(cellfun( @(x) isempty(x{1}), in))
+            in
+            error('Some input to the model is missing')
+        end
+    else
+        %% nuisance covs
+    
+        % fmriprep output
+        confound_fname = filenames(fullfile(confound_dir, PID, strcat(PID,'*mid_ses-2_run-',num2str(run),'*confounds*.mat')));
+    
+        % choose which matrix to use
+        load(confound_fname{1});
+    
+       
+        in{3} = {confound_fname{1}};
+    
+        % checks
+        if any(cellfun( @(x) isempty(x{1}), in))
+            in
+            error('Some input to the model is missing')
+        end
     end
 
     % check for SPM.mat and overwrite if needed
@@ -98,7 +126,7 @@ if are_you_doing_activation_first_levels == 1
 
     % run spm FL estimation
     cwd = pwd;
-    job = strcat('MID_SPM_',contrast,'_template.m');
+    job = strcat('SPM_',contrast,'_template.m');
     %%
     spm('defaults', 'FMRI')
     spm_jobman('serial',job,'',in{:});
