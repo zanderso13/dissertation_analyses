@@ -23,6 +23,7 @@ seed_region = 'Oldham_Con'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldh
 overwrite = 1;
 ses = 2;
 run = 1;
+ndummies = 10; % 10 for rest, 2 for mid
 
 % Define some paths
 basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/';
@@ -51,8 +52,6 @@ PID = strcat('sub-',numPID);
 
 fprintf(['Preparing 1st level model for ' task ' task for ' PID ' / ' ses], ['Overwrite = ' num2str(overwrite)]);
 
-
-ndummies = 10;
 
 
 %% Model for MID task. First pass at first levels --> activation
