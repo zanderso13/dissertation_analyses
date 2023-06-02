@@ -28,7 +28,7 @@ if isempty(in{1}{1})
     return
 end
 
-jobfile = {'/home/zaz3744/repo/acnlab_repo/preproc/smooth_template.m'};
+jobfile = {'/home/zaz3744/repo/dissertation_analyses/smooth_template.m'};
 jobs = 'smooth_template.m';
 
 
