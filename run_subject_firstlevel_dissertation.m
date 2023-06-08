@@ -2,28 +2,28 @@ function run_subject_firstlevel_BrainMAPD_PPI(PID)
 %% var set up
 if nargin==0 % defaults just for testing 
     % Define some 
-    PID = "20877"; 
+    PID = "10419"; 
     
 end
 
 are_you_doing_activation_first_levels = 1;
 % if you're doing resting state analysis, next line should be set to 0
-are_you_doing_ppi_first_levels = 0;
+are_you_doing_ppi_first_levels = 1;
 
 % the next two lines are a bit redundant, but it's how I've tried to get
 % around the different naming conventions that I'm used to seeing. There
 % are places throughout this script that reference these strings as part of
 % file names that SPM is either reading in or outputting. 
 
-task = 'rest'; % 'rest', 'mid'
-contrast = 'rest'; % anticipation, rest, consumption
+task = 'mid'; % 'rest', 'mid'
+contrast = 'anticipation'; % anticipation, rest, consumption
 
 % the next line only applies if you're doing ppi
-seed_region = 'Oldham_Con'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldham_Loss (VS); consumption: Amygdala, OFC, Oldham_Con (VS)
+seed_region = 'Oldham_Rew'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldham_Loss (VS); consumption: Amygdala, OFC, Oldham_Con (VS)
 overwrite = 1;
 ses = 2;
 run = 1;
-ndummies = 10; % 10 for rest, 2 for mid
+ndummies = 2; % 10 for rest, 2 for mid
 
 % Define some paths
 basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/';
@@ -31,7 +31,7 @@ basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_an
 % directories
 % first is where your activation related stats files will be output to. For
 % rest, change it to rest! For mid change it to activation.
-fl_dir = fullfile(basedir,'/rest');
+fl_dir = fullfile(basedir,'/activation');
 % next is where the preprocessed data is
 preproc_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data';
 % where framewise displacement files will be saved
