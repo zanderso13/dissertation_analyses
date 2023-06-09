@@ -2,7 +2,7 @@ function run_subject_firstlevel_BrainMAPD_PPI(PID)
 %% var set up
 if nargin==0 % defaults just for testing 
     % Define some 
-    PID = "10419"; 
+    PID = "21684"; 
     
 end
 
@@ -15,15 +15,15 @@ are_you_doing_ppi_first_levels = 1;
 % are places throughout this script that reference these strings as part of
 % file names that SPM is either reading in or outputting. 
 
-task = 'mid'; % 'rest', 'mid'
-contrast = 'anticipation'; % anticipation, rest, consumption
+task = 'rest'; % 'rest', 'mid'
+contrast = 'rest'; % anticipation, rest, consumption
 
 % the next line only applies if you're doing ppi
 seed_region = 'Oldham_Rew'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldham_Loss (VS); consumption: Amygdala, OFC, Oldham_Con (VS)
 overwrite = 1;
 ses = 2;
 run = 1;
-ndummies = 2; % 10 for rest, 2 for mid
+ndummies = 10; % 10 for rest, 2 for mid
 
 % Define some paths
 basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/';
@@ -31,7 +31,7 @@ basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_an
 % directories
 % first is where your activation related stats files will be output to. For
 % rest, change it to rest! For mid change it to activation.
-fl_dir = fullfile(basedir,'/activation');
+fl_dir = fullfile(basedir,'/rest');
 % next is where the preprocessed data is
 preproc_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data';
 % where framewise displacement files will be saved
