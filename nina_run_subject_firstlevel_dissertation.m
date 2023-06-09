@@ -70,7 +70,7 @@ if are_you_doing_activation_first_levels == 1
     if strcmp(task,'mid') == 1
         % onset files
         in{3} = filenames(fullfile(timing_dir, strcat(numPID,'*')));
-    
+	    
         if isempty(in{3})
             warning('No modeling found (behav data might be missing)')
             return
@@ -138,7 +138,7 @@ if are_you_doing_ppi_first_levels == 1
     in{1} = {fullfile(ppi_fl_dir, PID, strcat('ses-',num2str(ses)), contrast, strcat('run-', num2str(run)))};
 
     % preproc images
-    in{2} = cellstr(spm_select('ExtFPList', preproc_dir, strcat('^ssub-',numPID,'.*task-MID_run-',num2str(run),'_space-MNI152NLin6Asym_res-2_desc-preproc_bold.nii'), ndummies+1:9999));
+    in{2} = cellstr(spm_select('ExtFPList', preproc_dir, strcat('^ssub-',numPID,'.*task-mid_run-',num2str(run),'_space-MNI152NLin6Asym_res-2_desc-preproc_bold.nii'), ndummies+1:9999));
 
     if isempty(in{2}{1})
         warning('No preprocd functional found')
@@ -160,7 +160,7 @@ if are_you_doing_ppi_first_levels == 1
     names = regressor_temp.SPM.xX.name(:,[1:4,6:size(regressor_temp.SPM.xX.X,2)-1]);
 
     % use canlab core tools to pull out ROI time course data/convolve
-    dat = fmri_data(filenames(fullfile(preproc_dir, strcat('ssub-',numPID,'*run-',num2str(run),'*'))));
+    dat = fmri_data(filenames(fullfile(preproc_dir, strcat('ssub-',numPID,'*mid*run-',num2str(run),'*'))));
     roi = fmri_data(filenames(fullfile(seed_dir,strcat('*',seed_region,'*nii'))));
     roi_dat = extract_roi_averages(dat,roi);
     
@@ -175,7 +175,7 @@ if are_you_doing_ppi_first_levels == 1
     % include the average seed time course in the model 
     R = [R,zscore(roi_dat.dat(ndummies+1:size(roi_dat.dat,1)))]; names{length(names)+1} = 'timecourse';   
     
-    confound_fname_ppi = fullfile(confound_dir, PID, strcat(PID,'_mid_ses-2_run-',num2str(run),'_ppi_confounds.mat'));
+    confound_fname_ppi = fullfile(confound_dir, strcat(PID,'_mid_ses-2_run-',num2str(run),'_ppi_confounds.mat'));
     
     save(confound_fname_ppi, 'R','names')
     
