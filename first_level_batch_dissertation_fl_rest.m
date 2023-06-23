@@ -7,23 +7,24 @@
 scriptdir = '/projects/b1108/projects/brainmapd_ppi/quest_submit';
 
 % What run of your task are you looking at?
-run = 2;
+run = 1;
 % What session appears in your raw filenames when in BIDS format?
 ses = 2;
 % Do you want to overwrite previously estimated first levels or just add to
 % what you have? 1 overwrites, 0 adds
 overwrite = 0;
 
-
+% rest, consumption, anticipation
+contrast = 'rest';
 %%%%%%% END USER DEFINED %%%%%%%%%%
 
-fnames = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data/ssub*run-1*'));
+fnames = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data/ssub*rest*run-1*'));
 
 if overwrite == 0
-    fl_list = filenames(fullfile(strcat('/projects/b1108/projects/brainmapd_ppi/first_levels/ppi/*/ses-',num2str(ses),'/anticipation',strcat('run-',num2str(run)),'/SPM.mat'));
+    fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/rest/*/ses-',num2str(ses),'/',contrast),strcat('run-',num2str(run)),'/SPM.mat'));
     counter = 1;
     for sub = 1:length(fnames)
-        curr_sub = fnames{sub}(85:89);
+        curr_sub = fnames{sub}(93:97);
         if isempty(find(contains(fl_list,curr_sub)))
             new_list(counter) = str2num(curr_sub);
             counter = counter + 1;
@@ -47,9 +48,9 @@ for sub = 1:length(new_list)
         s = ['#!/bin/bash\n\n'...
      '#SBATCH -A p30954\n'...
      '#SBATCH -p short\n'...
-     '#SBATCH -t 02:00:00\n'...  
+     '#SBATCH -t 01:00:00\n'...  
      '#SBATCH --mem=30G\n\n'...
-     'matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath(''' repodir ''')); run_subject_firstlevel_dissertation_PPI(' num2str(ids) '); quit"\n\n']; %, ' num2str(ses) ',' num2str(run) ',' num2str(overwrite) '); quit"\n\n'];
+     'matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath(''' repodir ''')); run_subject_firstlevel_dissertation(' num2str(ids) '); quit"\n\n']; %, ' num2str(ses) ',' num2str(run) ',' num2str(overwrite) '); quit"\n\n'];
    
      scriptfile = fullfile(scriptdir, 'first_level_script.sh');
      fout = fopen(scriptfile, 'w');
