@@ -1,6 +1,9 @@
 
-load('/Users/zacharyanderson/Documents/dissertation/final_data/ofc_seed_mid_avg_data.mat');
-load('/Users/zacharyanderson/Documents/dissertation/final_data/final_mid_fnames.mat');
+% load in brain data 
+load('/Users/zacharyanderson/Documents/dissertation/final_data/final_anticipation_filenames_after_excluding_tor.mat')
+load('/Users/zacharyanderson/Documents/dissertation/final_data/final_ppi_anticipation.mat')
+
+% behavioral data load in
 load('/Users/zacharyanderson/Documents/dissertation/outcomes/demographics.mat');
 load('/Users/zacharyanderson/Documents/dissertation/outcomes/trilevel.mat');
 load('/Users/zacharyanderson/Documents/dissertation/outcomes/immune.mat');
@@ -54,10 +57,11 @@ regressors = [final_outcomes.inflammation,final_outcomes.GeneralDistress, final_
 dfinal.dat(:,isnan(regressors(:,1))|isnan(regressors(:,2))) = [];
 regressors(isnan(regressors(:,1))|isnan(regressors(:,2)),:) = [];
 
-dfinal.X = regressors;
+dfinal.X = regressors(:,[1,5:7]);
 
 statobj = regress(dfinal);
 threshobj = threshold(statobj.t,0.001,'unc','k',10);
+inflam_brain = select_one_image(threshobj,1);
 
 % orthviews(select_one_image(threshobj,2))
 
@@ -91,17 +95,17 @@ vs = fmri_data('/Users/zacharyanderson/Documents/ACNlab/masks/VS_8mmsphere_Oldha
 amyg = fmri_data('/Users/zacharyanderson/Documents/ACNlab/masks/HO_Amygdala_50prob.nii');
 ofc = fmri_data('/Users/zacharyanderson/Documents/ACNlab/masks/OFC_8mmsphere_Oldham.nii');
 
-r = extract_roi_averages(dfinal,vs);
+r = extract_roi_averages(dfinal,ofc);
 
 dat_s2s = array2table(regressors); dat_s2s.Properties.VariableNames = regressors_variablenames;
 target = r.dat; target = array2table(target); target.Properties.VariableNames = {'target_region'}; dat_s2s = [target,dat_s2s];
 
 
-dat_s2s(isoutlier(dat_s2s.target_region,"gesd"),:) = [];
-dat_s2s(isoutlier(dat_s2s.Inflammation,"gesd"),:) = [];
-dat_s2s(isoutlier(dat_s2s.GeneralDistress,"gesd"),:) = [];
-dat_s2s(isoutlier(dat_s2s.AnhedoniaApprehension,"gesd"),:) = [];
-dat_s2s(isoutlier(dat_s2s.Fears,"gesd"),:) = [];
+% dat_s2s(isoutlier(dat_s2s.target_region,"gesd"),:) = [];
+% dat_s2s(isoutlier(dat_s2s.Inflammation,"gesd"),:) = [];
+% dat_s2s(isoutlier(dat_s2s.GeneralDistress,"gesd"),:) = [];
+% dat_s2s(isoutlier(dat_s2s.AnhedoniaApprehension,"gesd"),:) = [];
+% dat_s2s(isoutlier(dat_s2s.Fears,"gesd"),:) = [];
 
 % whole sample
 fitlm(dat_s2s,'target_region ~ Inflammation + medication + site')
