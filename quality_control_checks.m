@@ -45,7 +45,7 @@ exclusions_from_plot = plot(dfinal);
 
 % for plotting with montage
 dfinal.X = ones(size(dfinal.dat,2),1);
-reg_out = regress(dfinal); thresh_out = threshold(reg_out.t,0.05,'fdr');
+reg_out = regress(dfinal); thresh_out = threshold(reg_out.t,0.05,'fdr','k',5);
 
 % region of interest extraction. apply an atlas and check for outliers in
 % connectivity/activation within a particular ROI
@@ -83,5 +83,8 @@ if ~isempty(regions_to_extract)
     end
 end
 
+r = extract_roi_averages(dfinal,bi_atl);
 
+roi_quality_check = zscore(r.dat);
+histogram(roi_quality_check)
 
