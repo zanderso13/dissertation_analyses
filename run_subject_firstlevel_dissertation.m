@@ -6,9 +6,13 @@ if nargin==0 % defaults just for testing
     
 end
 
-are_you_doing_activation_first_levels = 1;
+are_you_doing_activation_first_levels = 0;
 % if you're doing resting state analysis, next line should be set to 0
-are_you_doing_ppi_first_levels = 1;
+are_you_doing_ppi_first_levels = 0;
+% Rod suggested I do traditional resting state analysis on task to show
+% that reward networks are active. This will also work better for the way I
+% do hyperalignment
+are_you_doing_denoise_mid = 1;
 
 % the next two lines are a bit redundant, but it's how I've tried to get
 % around the different naming conventions that I'm used to seeing. There
@@ -16,13 +20,13 @@ are_you_doing_ppi_first_levels = 1;
 % file names that SPM is either reading in or outputting. 
 
 task = 'mid'; % 'rest', 'mid'
-contrast = 'consumption'; % anticipation, rest, consumption
+contrast = 'anticipation'; % anticipation, rest, consumption
 
 % the next line only applies if you're doing ppi
-seed_region = 'OFC'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldham_Loss (VS); consumption: Amygdala, OFC, Oldham_Con (VS)
+seed_region = 'Oldham_Rew'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldham_Loss (VS); consumption: Amygdala, OFC, Oldham_Con (VS)
 overwrite = 1;
 ses = 2;
-run = 2;
+run = 1;
 ndummies = 2; % 10 for rest, 2 for mid
 
 % Define some paths
@@ -30,8 +34,9 @@ basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_an
 
 % directories
 % first is where your activation related stats files will be output to. For
-% rest, change it to rest! For mid change it to activation.
-fl_dir = fullfile(basedir,'/activation');
+% rest, change it to rest! For mid change it to activation. For mid
+% denoising/traditional resting state analysis on task, mid_denoise
+fl_dir = fullfile(basedir,'/mid_denoise');
 % next is where the preprocessed data is
 preproc_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data';
 % where framewise displacement files will be saved
@@ -216,6 +221,57 @@ if are_you_doing_ppi_first_levels == 1
         cd(cwd);
     end
 end
+
+if are_you_doing_denoise_mid == 1
+
+    % FL directory for saving 1st level results: beta images, SPM.mat, contrasts, etc.
+    in{1} = {fullfile(fl_dir, PID, strcat('ses-',num2str(ses)), contrast, strcat('run-', num2str(run)))};
+
+    % preproc images
+    in{2} = cellstr(spm_select('ExtFPList', preproc_dir, strcat('^ssub-',numPID,'.*task-', task,'_run-',num2str(run),'_space-MNI152NLin6Asym_res-2_desc-preproc_bold.nii'), ndummies+1:9999));
+
+    if isempty(in{2}{1})
+        warning('No preprocd functional found')
+        return
+    end
+    
+    %% nuisance covs
+
+    % fmriprep output
+    confound_fname = filenames(fullfile(confound_dir, strcat(PID,'*',task,'_ses-2_run-',num2str(run),'*confounds*.mat')));
+	
+    % choose which matrix to use
+    load(confound_fname{1});
+
+   
+    in{3} = {confound_fname{1}};
+
+    % checks
+    if any(cellfun( @(x) isempty(x{1}), in))
+        in
+        error('Some input to the model is missing')
+    end
+    
+
+    % check for SPM.mat and overwrite if needed
+    
+    if exist(fullfile(in{1}{1},'SPM.mat'),'file')
+        if overwrite
+            fprintf('\n\nWARNING: EXISTING SPM.MATAND BETA FILES WILL BE OVERWRITTEN\n%s\n\n',fullfile(in{1}{1},'SPM.mat'));
+            rmdir(in{1}{1},'s');
+        else
+            fprintf('\n\nFirst levels already exist, wont ovewrite: %s\n\n',fullfile(in{1}{1},'SPM.mat'));
+            skip=1;
+        end
+    end
+
+
+    % run spm FL estimation
+    cwd = pwd;
+    job = strcat('SPM_mid_denoise_template.m');
+    %%
+    spm('defaults', 'FMRI')
+    spm_jobman('serial',job,'',in{:});
 
 end
 
