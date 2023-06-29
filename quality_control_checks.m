@@ -1,6 +1,6 @@
-cd /Users/zacharyanderson/Documents/ACNlab/BrainMAPD/PPI/dissertation_final_ppi_data
+cd /Users/zacharyanderson/Documents/ACNlab/BrainMAPD/PPI/dissertation_final_activation_data
 
-contrast = 'anticipation';
+contrast = 'consumption';
 fnames1 = filenames(fullfile(strcat('sub*/ses-2/',contrast,'/run-1/con_0001.nii')));
 fnames2 = filenames(fullfile(strcat('sub*/ses-2/',contrast,'/run-2/con_0001.nii')));
 
@@ -17,8 +17,8 @@ exclusions = {'10001','10084','10094','10102','10125','10140','10143','10148','1
   '20384',...% '21384' - originally excluded, after digging realized 21384 is real, 20384 is duplicate % these two scans are duplicates so one of them has to be wrong. Excluding both for now.
   'sub-10006'	'sub-10074'	'sub-10111'	'sub-10141'	'sub-10161'	'sub-10196'	'sub-10236'	'sub-10264'	'sub-10272'	'sub-10274'	'sub-10282'	'sub-10296'	'sub-10308'	'sub-10341'	'sub-10434'	'sub-10459'	'sub-10481'	'sub-20150'	'sub-20309'	'sub-21597'	'sub-21684',... % motion exclusions >0.3
   'sub-10074'	'sub-10111'	'sub-10141'	'sub-10161'	'sub-10236'	'sub-10264'	'sub-10296'	'sub-10341'	'sub-20150'}; % motion exclusion in run 1 >0.3
-  %'10272','10319',...
-  %'10196','10326','21127','20556','10177','21384','20627','21386','10236','21238'}; % these exclusions are from the outlier detection
+%   '10272','10319',...
+%   '10196','10326','21127','20556','10177','21384','20627','21386','10236','21238'}; % these exclusions are from the outlier detection
 
   
   
@@ -86,5 +86,5 @@ end
 r = extract_roi_averages(dfinal,bi_atl);
 
 roi_quality_check = zscore(r.dat);
-histogram(roi_quality_check)
+figure(); (roi_quality_check)
 
