@@ -7,7 +7,7 @@
 scriptdir = '/projects/b1108/projects/brainmapd_ppi/quest_submit';
 
 % What run of your task are you looking at?
-run = 1;
+run = 2;
 % What session appears in your raw filenames when in BIDS format?
 ses = 2;
 % Do you want to overwrite previously estimated first levels or just add to
@@ -15,13 +15,13 @@ ses = 2;
 overwrite = 0;
 
 % rest, consumption, anticipation
-contrast = 'rest';
+contrast = 'consumption';
 %%%%%%% END USER DEFINED %%%%%%%%%%
 
-fnames = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data/ssub*rest*run-1*'));
+fnames = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data/ssub*mid*run-1*'));
 
 if overwrite == 0
-    fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/rest/*/ses-',num2str(ses),'/',contrast),strcat('run-',num2str(run)),'/SPM.mat'));
+    fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/ppi/*/ses-',num2str(ses),'/',contrast),strcat('run-',num2str(run)),'/SPM.mat'));
     counter = 1;
     for sub = 1:length(fnames)
         curr_sub = fnames{sub}(93:97);
