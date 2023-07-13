@@ -14,13 +14,13 @@ ses = 2;
 % what you have? 1 overwrites, 0 adds
 overwrite = 0;
 
-contrast = 'consumption';
+contrast = 'anticipation';
 %%%%%%% END USER DEFINED %%%%%%%%%%
 
-fnames = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data/ssub*run-1*'));
+fnames = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data/ssub*mid*run-2*'));
 
 if overwrite == 0
-    fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/first_levels_phil/ppi/*/ses-',num2str(ses),'/',contrast),strcat('run-',num2str(run)),'/SPM.mat'));
+    fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/ppi_Amygdala_seed/*/ses-',num2str(ses),'/',contrast),strcat('run-',num2str(run)),'/SPM.mat'));
     counter = 1;
     for sub = 1:length(fnames)
         curr_sub = fnames{sub}(93:97);
@@ -34,7 +34,7 @@ if overwrite == 0
 end
 
 % Run/submit first level script
-repodir = '/home/zaz3744/repo';
+repodir = '/home/nck1870/repos';
 cd(scriptdir)
 keyboard
 for sub = 1:length(new_list)
@@ -45,11 +45,11 @@ for sub = 1:length(new_list)
 %     run_subject_firstlevel_BrainMAPD_PPI_run2(num2str(ids))
 
         s = ['#!/bin/bash\n\n'...
-     '#SBATCH -A p30954\n'...
+     '#SBATCH -A p31589\n'...
      '#SBATCH -p short\n'...
      '#SBATCH -t 00:30:00\n'...  
      '#SBATCH --mem=30G\n\n'...
-     'matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath(''' repodir ''')); run_subject_firstlevel_dissertation(' num2str(ids) '); quit"\n\n']; %, ' num2str(ses) ',' num2str(run) ',' num2str(overwrite) '); quit"\n\n'];
+     'matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath(''' repodir ''')); nina_run_subject_firstlevel_dissertation(' num2str(ids) '); quit"\n\n']; %, ' num2str(ses) ',' num2str(run) ',' num2str(overwrite) '); quit"\n\n'];
    
      scriptfile = fullfile(scriptdir, 'first_level_script.sh');
      fout = fopen(scriptfile, 'w');
