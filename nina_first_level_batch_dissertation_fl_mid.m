@@ -14,13 +14,13 @@ ses = 2;
 % what you have? 1 overwrites, 0 adds
 overwrite = 0;
 
-contrast = 'anticipation';
+contrast = 'consumption';
 %%%%%%% END USER DEFINED %%%%%%%%%%
 
 fnames = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data/ssub*mid*run-2*'));
 
 if overwrite == 0
-    fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/ppi_Amygdala_seed/*/ses-',num2str(ses),'/',contrast),strcat('run-',num2str(run)),'/SPM.mat'));
+    fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/ppi_ACC_seed/*/ses-',num2str(ses),'/',contrast),strcat('run-',num2str(run)),'/SPM.mat'));
     counter = 1;
     for sub = 1:length(fnames)
         curr_sub = fnames{sub}(93:97);

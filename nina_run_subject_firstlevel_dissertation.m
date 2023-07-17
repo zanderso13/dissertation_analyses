@@ -16,10 +16,10 @@ are_you_doing_ppi_first_levels = 1;
 % file names that SPM is either reading in or outputting. 
 
 task = 'mid'; % 'rest', 'mid'
-contrast = 'anticipation'; % anticipation, rest, consumption
+contrast = 'consumption'; % anticipation, rest, consumption
 
 % the next line only applies if you're doing ppi
-seed_region = 'Amygdala'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldham_Loss (VS); consumption: Amygdala, OFC, Oldham_Con (VS)
+seed_region = 'ACC'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldham_Loss (VS); consumption: Amygdala, OFC, Oldham_Con (VS)
 overwrite = 1;
 ses = 2;
 run = 2;
@@ -31,7 +31,7 @@ basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_an
 % directories
 % first is where your activation related stats files will be output to. For
 % rest, change it to rest! For mid change it to activation.
-fl_dir = fullfile(basedir,'/activation_Amygdala_seed');
+fl_dir = fullfile(basedir,'/activation_ACC_seed');
 % next is where the preprocessed data is
 preproc_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data';
 % where framewise displacement files will be saved
@@ -39,7 +39,7 @@ save_dir = fullfile(basedir,'/FD');
 % directory where I'm storing timing files for the MID
 timing_dir = fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_spm_timing_baseline/run-',num2str(run)),contrast);
 % this is where the ppi specific models will be output
-ppi_fl_dir = fullfile(basedir,'/ppi_Amygdala_seed');
+ppi_fl_dir = fullfile(basedir,'/ppi_ACC_seed');
 % this is where masks for the current study are held
 seed_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
 % this is where confound files are. these are distilled separately and then
