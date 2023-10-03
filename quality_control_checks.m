@@ -1,6 +1,6 @@
 cd /Users/zacharyanderson/Documents/ACNlab/BrainMAPD/PPI/dissertation_final_activation_data
 
-contrast = 'consumption';
+contrast = 'anticipation';yup
 fnames1 = filenames(fullfile(strcat('sub*/ses-2/',contrast,'/run-1/con_0001.nii')));
 fnames2 = filenames(fullfile(strcat('sub*/ses-2/',contrast,'/run-2/con_0001.nii')));
 
@@ -50,10 +50,10 @@ reg_out = regress(dfinal); thresh_out = threshold(reg_out.t,0.05,'fdr','k',5);
 % region of interest extraction. apply an atlas and check for outliers in
 % connectivity/activation within a particular ROI
 
-regions_to_extract = [151,152,153,154,155,156];
+regions_to_extract = [157,158];
 bilateral=1;
 atl = fmri_data(fullfile('/Users/zacharyanderson/Documents/GitHub/SchizConnect/AAL3/AAL3v1.nii'));
-keyboard
+
 if ~isempty(regions_to_extract)
     % create unilateral atlas from AAL
     atl_temp = atl;
@@ -86,5 +86,4 @@ end
 r = extract_roi_averages(dfinal,bi_atl);
 
 roi_quality_check = zscore(r.dat);
-figure(); (roi_quality_check)
 

@@ -18,7 +18,7 @@ for sub = 1:length(fnames2)
         i(sub,1) = NaN;
     end
     if ~isempty(find(dem.PID==id{sub,1}))
-        d(sub,1) = dem.sex(find(dem.PID==id{sub,1}));
+        d(sub,:) = dem(find(dem.PID==id{sub,1}),:);
     else
         fprintf(strcat(num2str(id{sub,1}),': missing dem data \n'))
         d(sub,1) = NaN;
@@ -46,18 +46,18 @@ site = cell2mat(id); site(site<20000) = 0; site(site>20000) = 1; site = array2ta
 s = array2table(s); s.Properties.VariableNames = {'GeneralDistress','AnhedoniaApprehension','Fears'};
 m = array2table(m); m.Properties.VariableNames = {'medication'};
 i = array2table(i); i.Properties.VariableNames = {'inflammation'};
-d = array2table(d); d.Properties.VariableNames = {'sex'};
+%d = array2table(d); d.Properties.VariableNames = dem.Properties.VariableNames;
 
 final_outcomes = [s,m,i,d,site];
 
-regressors_variablenames = {'Inflammation','GeneralDistress','AnhedoniaApprehension','Fears','sex','site','medication'};
-regressors = [final_outcomes.inflammation,final_outcomes.GeneralDistress, final_outcomes.AnhedoniaApprehension, final_outcomes.Fears, final_outcomes.sex,final_outcomes.site,final_outcomes.medication];
+regressors_variablenames = {'Inflammation','sex','site','medication'};
+regressors = [final_outcomes.inflammation,final_outcomes.sex,final_outcomes.site,final_outcomes.medication];
 
 % whole brain
 dfinal.dat(:,isnan(regressors(:,1))|isnan(regressors(:,2))) = [];
 regressors(isnan(regressors(:,1))|isnan(regressors(:,2)),:) = [];
 
-dfinal.X = regressors(:,[1,5:7]);
+dfinal.X = regressors;
 
 statobj = regress(dfinal);
 threshobj = threshold(statobj.t,0.001,'unc','k',10);
@@ -68,8 +68,8 @@ inflam_brain = select_one_image(threshobj,1);
 %% seed to seed
 
 % load in AAL3 atlas and pull out what regions you want for targets
-regions_to_extract = [157:158]; % pregenual ACC: 153:154, amygdala: 45:46, medial orb: 21:22
-% caudate: 75:76, putamen: 77:78, NAcc: 157:158
+regions_to_extract = [17:18,157:158]; %  ACC: 151:156, amygdala: 45:46, medial orb: 21:22
+% caudate: 75:76, putamen: 77:78, VS: [17:18,157:158]
 
 atl = fmri_data(fullfile('/Users/zacharyanderson/Documents/GitHub/SchizConnect/AAL3/AAL3v1.nii'));
 %atl = fmri_data(fullfile('/Users/zacharyanderson/Documents/dissertation/300_ROI_Set/ROIs_300inVol_MNI.nii'));
@@ -91,11 +91,12 @@ if ~isempty(regions_to_extract)
     bi_atl.dat(bi_atl.dat > 0) = 1;
     
 end
-vs = fmri_data('/Users/zacharyanderson/Documents/ACNlab/masks/VS_8mmsphere_Oldham_Rew.nii');
-amyg = fmri_data('/Users/zacharyanderson/Documents/ACNlab/masks/HO_Amygdala_50prob.nii');
-ofc = fmri_data('/Users/zacharyanderson/Documents/ACNlab/masks/OFC_8mmsphere_Oldham.nii');
+keyboard
+% vs = fmri_data('/Users/zacharyanderson/Documents/ACNlab/masks/VS_8mmsphere_Oldham_Rew.nii');
+% amyg = fmri_data('/Users/zacharyanderson/Documents/ACNlab/masks/HO_Amygdala_50prob.nii');
+% ofc = fmri_data('/Users/zacharyanderson/Documents/ACNlab/masks/OFC_8mmsphere_Oldham.nii');
 
-r = extract_roi_averages(dfinal,ofc);
+r = extract_roi_averages(dfinal,bi_atl);
 
 dat_s2s = array2table(regressors); dat_s2s.Properties.VariableNames = regressors_variablenames;
 target = r.dat; target = array2table(target); target.Properties.VariableNames = {'target_region'}; dat_s2s = [target,dat_s2s];
