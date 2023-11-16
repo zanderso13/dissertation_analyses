@@ -2,7 +2,7 @@ function run_subject_firstlevel_BrainMAPD_PPI(PID)
 %% var set up
 if nargin==0 % defaults just for testing 
     % Define some 
-    PID = "21684"; 
+    PID = "10008"; 
     
 end
 
@@ -20,13 +20,13 @@ are_you_doing_denoise_mid = 1;
 % file names that SPM is either reading in or outputting. 
 
 task = 'mid'; % 'rest', 'mid'
-contrast = 'anticipation'; % anticipation, rest, consumption
+contrast = 'consumption'; % anticipation, rest, consumption
 
 % the next line only applies if you're doing ppi
 seed_region = 'Oldham_Rew'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldham_Loss (VS); consumption: Amygdala, OFC, Oldham_Con (VS)
 overwrite = 1;
 ses = 2;
-run = 1;
+run = 2;
 ndummies = 2; % 10 for rest, 2 for mid
 
 % Define some paths
