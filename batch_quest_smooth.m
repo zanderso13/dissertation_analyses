@@ -3,7 +3,7 @@ scriptdir = '~/repo/acnlab_repo';
 repodir = '~/repo';
 
 % next is where the preprocessed data is
-directories = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/fmriprep/';
+directories = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/preproc_fmriprep-23.0.2/';
 
 % What run of your task are you looking at?
 run = 1;
@@ -17,13 +17,13 @@ overwrite = 0;
 ID_length = 5;
 
 
-file_list = filenames(fullfile(directories,strcat('*/ses-',num2str(ses),'/func/sub*REST*run-',num2str(run),'*preproc_bold.nii')));
+file_list = filenames(fullfile(directories,strcat('*/ses-',num2str(ses),'/func/sub*mid*run-',num2str(run),'*preproc_bold.nii')));
 for i = 1:length(file_list)
     sublist{i} = file_list{i}(76:80);
 end
 
 if overwrite == 0
-    smooth_list = filenames(fullfile(directories,strcat('*/ses-',num2str(ses),'/func/ssub*REST*run-*',num2str(run),'*')));
+    smooth_list = filenames(fullfile(directories,strcat('*/ses-',num2str(ses),'/func/ssub*mid*run-*',num2str(run),'*')));
     counter = 1;
     for sub = 1:length(sublist)
         curr_sub = sublist(sub);

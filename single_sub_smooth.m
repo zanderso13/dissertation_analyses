@@ -8,7 +8,7 @@ if nargin==0 % defaults just for testing
     run = 1;
 end
 
-preproc_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/fmriprep';
+preproc_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/preproc_fmriprep-23.0.2/';
 
 if nargin==1
     overwrite = 1;
@@ -21,14 +21,14 @@ ndummies=0;
 
 rundir = fullfile(preproc_dir, PID, strcat('ses-', num2str(ses)), 'func');
 
-in{1} = cellstr(spm_select('ExtFPList', rundir, strcat('.*task-REST_run-',num2str(run),'_space-MNI152NLin6Asym_res-2_desc-preproc_bold.nii'), ndummies+1:9999));
+in{1} = cellstr(spm_select('ExtFPList', rundir, strcat('.*task-mid_run-',num2str(run),'_space-MNI152NLin6Asym_res-2_desc-preproc_bold.nii'), ndummies+1:9999));
 
 if isempty(in{1}{1})
     warning('No preprocd functional found')
     return
 end
 
-jobfile = {'/home/zaz3744/repo/dissertation_analyses/smooth_template.m'};
+%jobfile = {'/home/zaz3744/repo/dissertation_analyses/smooth_template.m'};
 jobs = 'smooth_template.m';
 
 
