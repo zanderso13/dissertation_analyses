@@ -2,7 +2,7 @@
 function smooth_single_sub(PID,ses,run,overwrite)
 %% var set up
 if nargin==0 % defaults just for testing
-    PID = 10001;  
+    PID = 10006;  
     overwrite = 1;
     ses = 2;
     run = 1;
@@ -21,7 +21,7 @@ ndummies=0;
 
 rundir = fullfile(preproc_dir, PID, strcat('ses-', num2str(ses)), 'func');
 
-in{1} = cellstr(spm_select('ExtFPList', rundir, strcat('.*task-mid_run-',num2str(run),'_space-MNI152NLin6Asym_res-2_desc-preproc_bold.nii'), ndummies+1:9999));
+in{1} = cellstr(spm_select('ExtFPList', rundir, strcat('.*task-rest_run-',num2str(run),'_space-MNI152NLin6Asym_res-2_desc-preproc_bold.nii'), ndummies+1:9999));
 
 if isempty(in{1}{1})
     warning('No preprocd functional found')

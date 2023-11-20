@@ -26,7 +26,7 @@ contrast = 'consumption'; % anticipation, rest, consumption
 seed_region = 'Oldham_Rew'; % anticipation: Amygdala, OFC, Oldham_Rew (VS), Oldham_Loss (VS); consumption: Amygdala, OFC, Oldham_Con (VS)
 overwrite = 1;
 ses = 2;
-run = 2;
+run = 1;
 ndummies = 2; % 10 for rest, 2 for mid
 
 % Define some paths
