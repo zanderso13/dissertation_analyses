@@ -18,7 +18,7 @@ overwrite = 0;
 contrast = 'consumption';
 %%%%%%% END USER DEFINED %%%%%%%%%%
 
-fnames = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data/ssub*mid*run-1*'));
+fnames = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_data/t1/ssub*mid*run-1*'));
 
 if overwrite == 0
     fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/*/ses-2/',strcat('run-',num2str(run)),'/SPM.mat')));
