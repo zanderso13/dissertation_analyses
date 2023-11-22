@@ -21,7 +21,7 @@ contrast = 'consumption';
 fnames = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/smoothed_functional_data/ssub*mid*run-1*'));
 
 if overwrite == 0
-    fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/zach_and_nina_first_levels/mid_denoise/*/ses-',num2str(ses),'/',contrast),strcat('run-',num2str(run)),'/SPM.mat'));
+    fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/*/ses-2/',strcat('run-',num2str(run)),'/SPM.mat'));
     counter = 1;
     for sub = 1:length(fnames)
         curr_sub = fnames{sub}(93:97);
