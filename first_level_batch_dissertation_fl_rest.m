@@ -25,7 +25,7 @@ if overwrite == 0
     counter = 1;
     for sub = 1:length(fnames)
         keyboard
-        curr_sub = fnames{sub}(93:97);
+        curr_sub = fnames{sub}(85:89);
         if isempty(find(contains(fl_list,curr_sub)))
             new_list(counter) = str2num(curr_sub);
             counter = counter + 1;
