@@ -24,7 +24,7 @@ if overwrite == 0
     fl_list = filenames(fullfile(strcat('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/*/ses-2/',strcat('run-',num2str(run)),'/SPM.mat')));
     counter = 1;
     for sub = 1:length(fnames)
-        keyboard
+        
         curr_sub = fnames{sub}(85:89);
         if isempty(find(contains(fl_list,curr_sub)))
             new_list(counter) = str2num(curr_sub);
