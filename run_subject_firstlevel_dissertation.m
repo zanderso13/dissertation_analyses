@@ -20,7 +20,7 @@ ndummies = 2;
 contrast = 'anticipation'; % consumption
 
 % Define some paths
-basedir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD';
+basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging';
 
 preproc_dir = fullfile(basedir,'smoothed_data/t1/');
 
