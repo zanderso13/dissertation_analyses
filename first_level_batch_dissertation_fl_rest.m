@@ -37,7 +37,7 @@ end
 
 % Run/submit first level script
 repodir = '/home/zaz3744/repo';
-%cd(scriptdir)
+cd(scriptdir)
 keyboard
 for sub = 1:length(new_list)
     ids = new_list(sub);
