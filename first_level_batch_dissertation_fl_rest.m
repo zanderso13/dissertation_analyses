@@ -4,7 +4,7 @@
 % clunky and IT WILL CHANGE EVERYTIME YOU MOVE FILES AROUND. But since
 % we're in BIDS format... Maybe I can actually make this more dynamic. 
 
-scriptdir = '/projects/b1108/projects/brainmapd_ppi/quest_submit';
+scriptdir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/scriptdir';
 
 % What run of your task are you looking at?
 run = 2;
