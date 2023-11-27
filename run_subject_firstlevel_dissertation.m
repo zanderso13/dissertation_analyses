@@ -14,7 +14,7 @@ are_you_doing_rest = 0;
 
 overwrite = 1;
 ses = 2;
-run = 1;
+run = 2;
 ndummies = 2;
 
 contrast = 'anticipation'; % consumption
