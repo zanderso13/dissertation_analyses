@@ -4,7 +4,7 @@ prep_timing = 1;
 if prep_timing == 1
     savedir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/final_betaseries_timing/';
     filedir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/mid_spm_timing_baseline/';
-    run = 'run-1';
+    run = 'run-2';
     cd(fullfile(filedir,run))
     antfnames = filenames('anticipation/*.mat');
     confnames = filenames('consumption/*.mat');
@@ -14,30 +14,26 @@ if prep_timing == 1
         pid = antfnames{files}(14:18);
         
         antevent = 'antgain';
-        antindex = find(strcmp(anttemp.names(:),antevent));
-        for i = 1:length(anttemp.onsets{antindex})
-            durations1{1,i} = anttemp.durations{antindex}(i);
-            names1{1,i} = anttemp.names{antindex};
-            onsets1{1,i} = anttemp.onsets{antindex}(i);
+        for i = 1:length(anttemp.onsets(strcmp(anttemp.names(:),'antgain')))
+            durations1{i,events} = anttemp.durations{events}(i);
+            names1{i,events} = anttemp.names{events};
+            onsets1{i,events} = anttemp.onsets{events}(i);
         end
 
         conevent = 'hitcongain';
-        conindex = find(strcmp(contemp.names(:),conevent));
-        for j = 1:length(contemp.onsets{conindex})
-            durations2{1,j} = contemp.durations{conindex}(j);
-            names2{1,j} = contemp.names{conindex};
-            onsets2{1,j} = contemp.onsets{conindex}(j);
+        for j = 1:length(contemp.onsets{events})
+            durations2{j,events} = contemp.durations{events}(j);
+            names2{j,events} = contemp.names{events};
+            onsets2{j,events} = contemp.onsets{events}(j);
         end
         
-        durations = [durations1,durations2];
-        onsets = [onsets1,onsets2];
-        names = [names1,names2];
+        
         
 
         filename = fullfile(savedir,strcat(pid,'_',run,'.mat'));
         save(filename,"durations","names","onsets");
 
-        clear durations durations1 durations2 names names1 names2 onsets onsets1 onsets2 anttemp contemp
+        clear durations names onsets antname conname anton conon antdur condur
     end
 
 end
