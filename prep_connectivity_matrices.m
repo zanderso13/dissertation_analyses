@@ -1,11 +1,12 @@
 doing_beta_series = 1;
 
 if doing_beta_series == 1
-    atl = fmri_data('~/repo/Schizconnect/AAL3/AAL3v1.nii');
+    atl = fmri_data('/home/zaz3744/repo/Schizconnect/AAL3/AAL3v1.nii');
     vs = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/VS_8mmsphere_Oldham_Rew.nii');
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/';
     cd(basedir)
-    spm_fnames = filenames(fullfile(strcat('sub-*/ses-2/run-1/SPM.mat')));
+    spm_fnames = filenames(fullfile(strcat('sub-*/ses-2/run-2/SPM.mat')));
+    keyboard
     for f = 1:length(spm_fnames)
         pid = spm_fnames{f}(5:9);
         fprintf(strcat(pid,'\n'))
@@ -15,7 +16,7 @@ if doing_beta_series == 1
         beta_fnames = {};
         for nums = 1:length(beta_file_nums)
             temp_num_strings{nums} = pad(num2str(beta_file_nums(nums)),4,'left','0');
-            beta_fnames{nums} = strcat(basedir,'/sub-',pid,'/ses-2/run-1/','beta_',temp_num_strings{nums},'.nii');
+            beta_fnames{nums} = strcat(basedir,'/sub-',pid,'/ses-2/run-2/','beta_',temp_num_strings{nums},'.nii');
         end
         dat = fmri_data(beta_fnames);
         aaldat = extract_roi_averages(dat, atl);
@@ -39,7 +40,7 @@ if doing_beta_series == 1
             end
         end
         
-        curr_filename = strcat(pid,'_beta_correlations_and_extracted_mid_data.mat');
+        curr_filename = strcat(pid,'_run-2_beta_correlations_and_extracted_mid_data.mat');
 
         save(fullfile(basedir,curr_filename),"corr_vs_voxel_to_region", "corr_vs_to_wholebrain_aal", "corr_vs_to_wholebrain_voxel", "dat")
 

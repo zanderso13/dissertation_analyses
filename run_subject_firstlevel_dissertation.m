@@ -2,7 +2,7 @@ function run_subject_firstlevel_BrainMAPD_PPI(PID)
 %% var set up
 if nargin==0 % defaults just for testing 
     % Define some 
-    PID = "10008"; 
+    PID = "21684"; 
     
 end
 
@@ -127,8 +127,7 @@ if are_you_doing_mid_beta_series == 1
     
     if ~skip
         % make dir for beta and contrast files
-        if ~isdir(in{1}{1}), mkdir(in{1}{1}); end
-    
+        if ~isdir(in{1}{1}), mkdir(in{1}{1}); end    
 
         % run spm FL estimation
         cwd = pwd;
