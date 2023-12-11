@@ -237,8 +237,8 @@ if analyze_with_behavioral_and_self_report == 1
             end
 
               
-            unaligned_mdl{perm} = plsregress(unaligned_x',outcome,20,'CV',10);
-            aligned_mdl{perm} = plsregress(aligned_x',outcome,20,'CV',10);    
+            [uXL{perm},uYL{perm},uXS{perm},uYS{perm},uBETA{perm},uPCTVAR{perm},uMSE{perm},ustats{perm}] = plsregress(unaligned_x',outcome,20,'CV',10);
+            [aXL{perm},aYL{perm},aXS{perm},aYS{perm},aBETA{perm},aPCTVAR{perm},aMSE{perm},astats{perm}] = plsregress(aligned_x',outcome,20,'CV',10);    
             %curr_filename = fullfile('/Users/zacharyanderson/Documents/ADAPTlab/schizconnect/final_data/',strcat('rotation_single_perm_',num2str(perm),'.mat'));
             %save(curr_filename,'frontal_translation','frontal_rot','-v7.3')
         end
