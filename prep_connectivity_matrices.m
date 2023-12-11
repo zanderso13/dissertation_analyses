@@ -2,7 +2,7 @@ doing_beta_series = 1;
 
 if doing_beta_series == 1
     atl = fmri_data('/home/zaz3744/repo/Schizconnect/AAL3/AAL3v1.nii');
-    vs = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/VS_8mmsphere_Oldham_Rew.nii');
+    vs = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/VS_8mmsphere_Oldham_Con.nii');
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/';
     cd(basedir)
     spm_fnames = filenames(fullfile(strcat('sub-*/ses-2/run-2/SPM.mat')));
@@ -11,7 +11,7 @@ if doing_beta_series == 1
         pid = spm_fnames{f}(5:9);
         fprintf(strcat(pid,'\n'))
         load(spm_fnames{f})
-        beta_file_nums = find(contains(SPM.xX.name(:),'antgain'));
+        beta_file_nums = find(contains(SPM.xX.name(:),'hitcongain'));
         temp_num_strings = {};
         beta_fnames = {};
         for nums = 1:length(beta_file_nums)
@@ -40,7 +40,7 @@ if doing_beta_series == 1
             end
         end
         
-        curr_filename = strcat(pid,'_run-2_beta_correlations_and_extracted_mid_data.mat');
+        curr_filename = strcat(pid,'_run-2_hitcongain_beta_correlations_and_extracted_mid_data.mat');
 
         save(fullfile(basedir,curr_filename),"corr_vs_voxel_to_region", "corr_vs_to_wholebrain_aal", "corr_vs_to_wholebrain_voxel", "dat")
 
