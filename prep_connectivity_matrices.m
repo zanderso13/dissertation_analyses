@@ -2,6 +2,7 @@ doing_beta_series = 1;
 
 if doing_beta_series == 1
     atl = fmri_data('/home/zaz3744/repo/Schizconnect/AAL3/AAL3v1.nii');
+    % atl = fmri_data('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/300ROIatlas/300_ROI_Set/ROIs_300inVol_MNI.nii');
     vs = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/VS_8mmsphere_Oldham_Rew.nii');
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/';
     cd(basedir)
@@ -26,8 +27,7 @@ if doing_beta_series == 1
         % regions
 
         for voxel = 1:length(dat.dat)
-            corr_vs_to_wholebrain_voxel(voxel,:) = corr(dat.dat(voxel,:)',vsdat.dat);
-            
+            corr_vs_to_wholebrain_voxel(voxel,:) = corr(dat.dat(voxel,:)',vsdat.dat);            
         end
 
         for region = 1:length(aaldat)
