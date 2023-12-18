@@ -1,12 +1,17 @@
 analyze_with_behavioral_and_self_report = 1;
-hyper = 1;
-%% below this is old code I need to repurpose for the new sets of analyses I'm running. 
+mediation_analysis = 1; % above must be set to 1 as well. 
+hyper = 0;
+
 % beta series correlations will be used for task. resting state func conn
 % will be what it is. hyperalignment section will be appended at the very
 % end. 
 basedir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/beta_series/final_matrices/combined_runs_with_hyp';
 cd(basedir)
+
+
+%%
 if analyze_with_behavioral_and_self_report == 1
+    
     fnames = filenames('*.mat');
 
     load(fullfile('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/beta_series/final_motion_exclusions.mat'));
@@ -135,7 +140,8 @@ if analyze_with_behavioral_and_self_report == 1
 
     end    
 
-
+%% hyperalignment 
+% 
     if hyper == 1
         
         % only one of these can be turned 'on' at a time. Composites should be
