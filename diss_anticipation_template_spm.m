@@ -24,17 +24,14 @@ matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
 matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 
 matlabbatch{3}.spm.stats.con.spmmat(1) = cfg_dep('Model estimation: SPM.mat File', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
-% matlabbatch{3}.spm.stats.con.consess{1}.tcon.name = 'LossAnticipation';
-% matlabbatch{3}.spm.stats.con.consess{1}.tcon.weights = [1 -1];
-% matlabbatch{3}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
-% matlabbatch{3}.spm.stats.con.consess{2}.tcon.name = 'GainAnticipation';
-% matlabbatch{3}.spm.stats.con.consess{2}.tcon.weights = [0 0 1 -1];
-% matlabbatch{3}.spm.stats.con.consess{2}.tcon.sessrep = 'none';
-matlabbatch{3}.spm.stats.con.consess{1}.tcon.name = 'GainvNoGain';
+matlabbatch{3}.spm.stats.con.consess{1}.tcon.name = 'GainAnticipation';
 matlabbatch{3}.spm.stats.con.consess{1}.tcon.weights = [0 0 1 -1];
 matlabbatch{3}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
-matlabbatch{3}.spm.stats.con.consess{2}.tcon.name = 'LossvNoLoss';
+matlabbatch{3}.spm.stats.con.consess{2}.tcon.name = 'LossAnticipation';
 matlabbatch{3}.spm.stats.con.consess{2}.tcon.weights = [1 -1];
 matlabbatch{3}.spm.stats.con.consess{2}.tcon.sessrep = 'none';
+matlabbatch{3}.spm.stats.con.consess{3}.tcon.name = 'GainVsLoss';
+matlabbatch{3}.spm.stats.con.consess{3}.tcon.weights = [-1 0 1];
+matlabbatch{3}.spm.stats.con.consess{3}.tcon.sessrep = 'none';
 
 matlabbatch{3}.spm.stats.con.delete = 1;
