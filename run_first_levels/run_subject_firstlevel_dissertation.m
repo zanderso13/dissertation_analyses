@@ -1,4 +1,4 @@
-function run_subject_firstlevel_BrainMAPD_PPI(PID)
+function run_subject_firstlevel_dissertation(PID)
 %% var set up
 if nargin==0 % defaults just for testing 
     % Define some 
