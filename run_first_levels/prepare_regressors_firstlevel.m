@@ -4,7 +4,7 @@ prep_timing = 0;
 if prep_timing == 1
     savedir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/final_betaseries_timing/';
     filedir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/mid_spm_timing_baseline/';
-    run = 'run-1';
+    run = 'run-2';
     cd(fullfile(filedir,run))
     antfnames = filenames('anticipation/*.mat');
     confnames = filenames('consumption/*.mat');
@@ -45,7 +45,7 @@ end
 if prep_confounds == 1
     confounddir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/copy_fmriprep_confound';
     
-    fnames = filenames('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/copy_fmriprep_confound/*mid_run-2*txt');
+    fnames = filenames('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/copy_fmriprep_confound/*mid_run-1*txt');
     ex1 = 33; 
     ndummies = 2;
     for files = 1:length(fnames)
@@ -58,21 +58,22 @@ if prep_confounds == 1
         rotx = table2array(T(:,contains(T.Properties.VariableNames,'rot_x')));
         roty = table2array(T(:,contains(T.Properties.VariableNames,'rot_y')));
         rotz = table2array(T(:,contains(T.Properties.VariableNames,'rot_z')));
+        gsr = table2array(T(:,contains(T.Properties.VariableNames,'global_signal')));
         csf = T.csf;
         wm = T.white_matter;
         fd(files) = nanmean(T.framewise_displacement);
     
-        R = [transx,transy,transz,rotx,roty,rotz,csf,wm,outliers];
+        R = [transx,transy,transz,rotx,roty,rotz,gsr,outliers];
         R(isnan(R)) = 0;
         R = R(ndummies+1:size(R,1),:);
     
         if nanmean(T.framewise_displacement) > 0.2 
             pid_exclude_list{ex1,1} = pid;
-            pid_exclude_list{ex1,2} = 'mid_run-2';
+            pid_exclude_list{ex1,2} = 'mid_run-1';
             ex1 = ex1 + 1;
         end
-        % save_name = fullfile('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/final_confound',strcat(pid,'_mid_run-2.mat'));
-        % save(save_name,"R")
+        save_name = fullfile('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/final_confound',strcat(pid,'_mid_run-1.mat'));
+        save(save_name,"R")
         
     end
 end
