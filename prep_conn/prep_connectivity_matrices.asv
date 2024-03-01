@@ -8,16 +8,13 @@ if doing_beta_series == 1
     acc = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/bilat_AAL3_ACC.nii');
     amyg = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/HO_Amygdala_50prob.nii');
     
-    savedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices';
+    savedir = ''
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/';
     cd(basedir)
     spm_fnames = filenames(fullfile(strcat('sub-*/ses-2/gain_contrasts/run-2/SPM.mat')));
     keyboard
     for f = 1:length(spm_fnames)
-
         pid = spm_fnames{f}(5:9);
-        fprintf(['Preparing beta corr for ' pid]);
-
         fprintf(strcat(pid,'\n'))
         load(spm_fnames{f})
         beta_file_nums = find(contains(SPM.xX.name(:),'antgain'));
@@ -75,7 +72,7 @@ if doing_beta_series == 1
             end
         end
         
-        curr_filename = strcat(pid,'_run-2.mat');
+        curr_filename = strcat(pid,'_run-2_beta_corr.mat');
 
         save(fullfile(savedir,curr_filename),"corr_vs_wholebrain", "corr_ofc_wholebrain",...
             "corr_amyg_wholebrain", "corr_acc_wholebrain","seitz_mat",...

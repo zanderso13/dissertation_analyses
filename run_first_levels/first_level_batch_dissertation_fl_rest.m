@@ -7,7 +7,7 @@
 scriptdir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/scriptdir';
 
 % What run of your task are you looking at?
-run = 1;
+run = 2;
 % What session appears in your raw filenames when in BIDS format?
 ses = 2;
 % Do you want to overwrite previously estimated first levels or just add to
