@@ -5,7 +5,6 @@ hyper_analyze = 0; do_pls_regress = 0; overwrite_hyper = 0;
 % big switch. This turns everything off
 compare_aligned_pls_loadings = 0;
 
-
 look_at_multivariate_rotation_estimates = 1;
 
 mediate_with_pls_components = 1;
@@ -14,15 +13,11 @@ which_symptom = 'longFears'; % longAnhedoniaApprehension longFears longGeneralDi
 % beta series correlations will be used for task. resting state func conn
 % will be what it is. hyperalignment section will be appended at the very
 % end. 
-basedir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/beta_series/final_matrices/anticipation_combined_runs_with_hyp';
+basedir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/mid_corr_matrices';
 cd(basedir)
 
 if compare_aligned_pls_loadings == 0
-    %% 
-    
-    fnames = filenames('*.nii');
     fnames_mat = filenames('*.mat');
-    full_fnames = filenames(fullfile(basedir,'*.nii'));
     
     load(fullfile('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/beta_series/final_motion_exclusions.mat'));
     
@@ -32,7 +27,6 @@ if compare_aligned_pls_loadings == 0
         fnames_mat(contains(fnames_mat(:),pid_exclude_list{exclude,1})) = [];
         full_fnames(contains(full_fnames(:),pid_exclude_list{exclude,1})) = [];
     end
-    
     
     %% prep behavioral data and match to pids
     % behavioral data load in
