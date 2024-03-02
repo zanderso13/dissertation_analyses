@@ -1,3 +1,5 @@
+function prep_connectivity_matrices(pid,run)
+
 doing_beta_series = 1;
 
 if doing_beta_series == 1
@@ -11,21 +13,21 @@ if doing_beta_series == 1
     savedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices';
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/';
     cd(basedir)
-    spm_fnames = filenames(fullfile(strcat('sub-*/ses-2/gain_contrasts/run-2/SPM.mat')));
-    keyboard
-    for f = 1:length(spm_fnames)
+%     spm_fnames = filenames(fullfile(strcat('sub-*/ses-2/gain_contrasts/run-2/SPM.mat')));
+%     keyboard
+%     for f = 1:length(spm_fnames)
 
-        pid = spm_fnames{f}(5:9);
-        fprintf(['Preparing beta corr for ' pid]);
+%         pid = spm_fnames{f}(5:9);
+        fprintf(['Preparing beta corr for ' num2str(pid)]);
 
-        fprintf(strcat(pid,'\n'))
-        load(spm_fnames{f})
+        curr_file = filenames(fullfile(strcat('*',num2str(pid),'/'),'*/gain_contrasts/',run,'SPM.mat'));
+        load(curr_file{1});
         beta_file_nums = find(contains(SPM.xX.name(:),'antgain'));
         temp_num_strings = {};
         beta_fnames = {};
         for nums = 1:length(beta_file_nums)
             temp_num_strings{nums} = pad(num2str(beta_file_nums(nums)),4,'left','0');
-            beta_fnames{nums} = strcat(basedir,'/sub-',pid,'/ses-2/gain_contrasts/run-2/','beta_',temp_num_strings{nums},'.nii');
+            beta_fnames{nums} = strcat(basedir,'/sub-',num2str(pid),'/ses-2/gain_contrasts/',run,'/beta_',temp_num_strings{nums},'.nii');
         end
         dat = fmri_data(beta_fnames);
         seitz = extract_roi_averages(dat, atl);
@@ -75,13 +77,13 @@ if doing_beta_series == 1
             end
         end
         
-        curr_filename = strcat(pid,'_run-2.mat');
+        curr_filename = strcat(num2str(pid),'_',run,'.mat');
 
         save(fullfile(savedir,curr_filename),"corr_vs_wholebrain", "corr_ofc_wholebrain",...
             "corr_amyg_wholebrain", "corr_acc_wholebrain","seitz_mat",...
             "corr_vs_voxel_to_region","corr_ofc_voxel_to_region","corr_acc_voxel_to_region",...
             "corr_amyg_voxel_to_region")
 
-    end
+    %end
 
 end
