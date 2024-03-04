@@ -37,7 +37,7 @@ for sub = 1:length(new_list)
 
     % this bit will run the loop one subject at a time for testing
 
-    % prep_connectivity_matrices(num2str(ids),run)
+%     prep_connectivity_matrices_2(num2str(ids),run)
 
     % this bit will write out text files then submit them to the cluster
         s = ['#!/bin/bash\n\n'...
@@ -45,7 +45,7 @@ for sub = 1:length(new_list)
      '#SBATCH -p short\n'...
      '#SBATCH -t 01:00:00\n'...  
      '#SBATCH --mem=30G\n\n'...
-     'matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath(''' repodir ''')); prep_connectivity_matrices(' num2str(ids) ',''' run '''); quit"\n\n']; 
+     'matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath(''' repodir ''')); prep_connectivity_matrices_2(' num2str(ids) ',''' run '''); quit"\n\n']; 
    
      scriptfile = fullfile(scriptdir, 'first_level_script.sh');
      fout = fopen(scriptfile, 'w');
