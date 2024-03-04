@@ -4,7 +4,7 @@ prep_timing = 0;
 if prep_timing == 1
     savedir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/final_betaseries_timing/';
     filedir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/mid_spm_timing_baseline/';
-    run = 'run-2';
+    run = 'run-1';
     cd(fullfile(filedir,run))
     antfnames = filenames('anticipation/*.mat');
     confnames = filenames('consumption/*.mat');
@@ -45,8 +45,9 @@ end
 if prep_confounds == 1
     confounddir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/copy_fmriprep_confound';
     
-    fnames = filenames('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/copy_fmriprep_confound/*mid_run-1*txt');
-    ex1 = 33; 
+    fnames = filenames('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/copy_fmriprep_confound/*mid_run-2*txt');
+    
+    ex1 =32; 
     ndummies = 2;
     for files = 1:length(fnames)
         T = readtable(fnames{files});
@@ -69,11 +70,12 @@ if prep_confounds == 1
     
         if nanmean(T.framewise_displacement) > 0.2 
             pid_exclude_list{ex1,1} = pid;
-            pid_exclude_list{ex1,2} = 'mid_run-1';
+            pid_exclude_list{ex1,2} = 'mid_run-2';
             ex1 = ex1 + 1;
         end
-        save_name = fullfile('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/final_confound',strcat(pid,'_mid_run-1.mat'));
-        save(save_name,"R")
+        
+        %save_name = fullfile('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/final_confound',strcat(pid,'_mid_run-1.mat'));
+        %save(save_name,"R")
         
     end
 end

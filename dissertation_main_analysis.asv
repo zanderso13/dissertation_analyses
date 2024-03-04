@@ -160,9 +160,9 @@ if whole_brain_networks == 1
     for f = 1:length(fnames)
         load(fnames{f});
         pid=fnames{f}(1:5);
-        final_brain_vs=fmri_data('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/beta_series/sub-10001/ses-2/gain_contrasts/run-1/beta_0001.nii');
-        final_brain_vs.dat = atanh(final_corr_vs_whole);
-        final_brain_vs.fullpath = strcat(pid,'_antgain.nii');
+        final_brain_vs=temp_brain;
+        final_brain_vs.dat = corr_vs_to_wholebrain_voxel;
+        final_brain_vs.fullpath = strcat(pid,'antgain.nii');
         write(final_brain_vs)
     end
     
