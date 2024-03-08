@@ -8,7 +8,7 @@ if nargin==0 % defaults just for testing
     run = 1;
 end
 
-preproc_dir = '/projects/b1108/studies/rise/data/processed/neuroimaging/fmriprep/ses-2';
+preproc_dir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/AIB_RestOnly_Newtworks';
 
 if nargin==1
     overwrite = 1;

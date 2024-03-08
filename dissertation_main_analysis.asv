@@ -35,15 +35,10 @@ end
 cd(basedir)
 
 fnames = filenames('*.mat');
-if mid==1   
-    load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusion.mat'));
-end
+    
+load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusion.mat'));
 
-if rest==1
-    load(fullfile(''))
-end
-
-% apply exclusions based on a >0.2mm FD MID or rest
+% apply exclusions based on a >0.2mm FD MID
 for exclude = 1:length(pid_exclude_list)
     fnames(contains(fnames(:),pid_exclude_list{exclude,1})) = [];
 end

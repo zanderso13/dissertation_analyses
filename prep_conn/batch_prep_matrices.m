@@ -1,19 +1,19 @@
-basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/';
+basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging';
 scriptdir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/scriptdir';
-corrdir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices';
+corrdir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices';
 repodir = '/home/zaz3744/repo';
 
 % What run of your task are you looking at?
 run = 'run-1'; % run-2, rest will only have run-1
 
 % What task are you running?
-task = 'beta_series'; % eventually rest
+task = 'AIB_RestOnly_Newtworks'; % eventually beta_series 
 
 cd(fullfile(basedir,task))
 
-fnames = filenames(fullfile('sub*/ses*/gain_contrasts/',run,'SPM.mat'));
+fnames = filenames(fullfile('sub*/ses-1/*rest_final.nii'));
 
-conn_list = filenames(fullfile(corrdir,strcat('*',run,'*.mat')));
+conn_list = filenames(fullfile(corrdir,strcat('*.mat')));
 
 counter = 1;
 for sub = 1:length(fnames)
@@ -39,7 +39,7 @@ for sub = 1:length(new_list)
 
 %     prep_connectivity_matrices_2(num2str(ids),run)
 
-    % this bit will write out text files then submit them to the cluster
+%     % this bit will write out text files then submit them to the cluster
         s = ['#!/bin/bash\n\n'...
      '#SBATCH -A p30954\n'...
      '#SBATCH -p short\n'...
@@ -53,6 +53,6 @@ for sub = 1:length(new_list)
      
      !chmod 777 first_level_script.sh
      !sbatch first_level_script.sh
-     
+%      
 
 end
