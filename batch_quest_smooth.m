@@ -3,12 +3,12 @@ scriptdir = '~/repo/acnlab_repo';
 repodir = '~/repo';
 
 % next is where the preprocessed data is
-directories = '/projects/b1108/studies/rise/data/processed/neuroimaging/fmriprep/ses-2';
+directories = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/AIB_RestOnly_Newtworks';
 
 % What run of your task are you looking at?
-run = 2;
+run = 1;
 % What session appears in your raw filenames when in BIDS format?
-ses = 2;
+ses = 1;
 % Do you want to overwrite previously estimated first levels or just add to
 % what you have? 1 overwrites, 0 adds
 overwrite = 0;
@@ -17,13 +17,13 @@ overwrite = 0;
 ID_length = 5;
 
 
-file_list = filenames(fullfile(directories,strcat('*/ses-',num2str(ses),'/func/sub*mid*run-0',num2str(run),'*preproc_bold.nii')));
+file_list = filenames(fullfile(directories,strcat('*/ses-',num2str(ses),'/sub*rest*.nii')));
 for i = 1:length(file_list)
-    sublist{i} = file_list{i}(98:102);
+    sublist{i} = file_list{i}(106:110);
 end
 
 if overwrite == 0
-    smooth_list = filenames(fullfile(directories,strcat('*/ses-',num2str(ses),'/func/ssub*mid*run-0',num2str(run),'*')));
+    smooth_list = filenames(fullfile(directories,strcat('*/ses-',num2str(ses),'/ssub*rest*nii')));
     counter = 1;
     for sub = 1:length(sublist)
         curr_sub = sublist(sub);
@@ -49,7 +49,7 @@ for sub = 1:length(new_list)
         s = ['#!/bin/bash\n\n'...
      '#SBATCH -A p30954\n'...
      '#SBATCH -p short\n'...
-     '#SBATCH -t 00:10:00\n'...  
+     '#SBATCH -t 00:20:00\n'...  
      '#SBATCH --mem=30G\n\n'...
      'matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath(''' repodir ''')); single_sub_smooth(' PID ', ' num2str(ses) ',' num2str(run) ',' num2str(overwrite) '); quit"\n\n'];
    

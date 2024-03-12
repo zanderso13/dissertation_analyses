@@ -6,11 +6,16 @@ mid = 0; rest = 1;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
-whole_brain_networks = 1; overwrite_nii = 0; 
+whole_brain_networks = 0; overwrite_nii = 0; 
+
+linear_seed_to_seed = 0; seeddir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
+mediation_seed_to_seed = 0; % linear seed to see must be on
+moderated_mediation_seed_to_seed = 0;
 
 whole_brain_mediation_analysis = 0; 
+whole_brain_moderated_mediation = 0;
 
-hyper= 0; overwrite_hyper = 0; % hardcoded which seed you're looking at
+hyper= 1; overwrite_hyper = 1; % hardcoded which seed you're looking at
 
 hyper_analyze = 0; remake_multivar_input = 0; do_pls_regress = 0; 
 
@@ -35,10 +40,15 @@ end
 cd(basedir)
 
 fnames = filenames('*.mat');
-    
-load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusion.mat'));
+if mid==1   
+    load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusion.mat'));
+end
 
-% apply exclusions based on a >0.2mm FD MID
+if rest==1
+    load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusions_rest.mat'))
+end
+
+% apply exclusions based on a >0.2mm FD MID or rest
 for exclude = 1:length(pid_exclude_list)
     fnames(contains(fnames(:),pid_exclude_list{exclude,1})) = [];
 end
@@ -178,7 +188,7 @@ end
 
 if whole_brain_networks == 1
     %% whole brain relationships between brain, inflammation and brain, symptoms
-    remove_missing_data = 0;
+    remove_missing_data = 1;
     % This will also be my sanity check about what networks are associated
     % with each of the seeds I've chosen to study. I need to output average
     % images for the subs still in the study (stored in fnames) and then
@@ -187,13 +197,25 @@ if whole_brain_networks == 1
 
     % you can change which seed you're looking at here
     if overwrite_nii == 1
-        for f = 1:length(fnames)
-            load(fnames{f});
-            pid=fnames{f}(1:5);
-            final_brain=fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/sub-10001/ses-2/gain_contrasts/run-1/beta_0001.nii');
-            final_brain.dat = atanh(final_corr_acc_whole); % vs amyg acc ofc
-            final_brain.fullpath = strcat(pid,'_acc_antgain.nii');
-            write(final_brain,'overwrite')
+        if mid == 1
+            for f = 1:length(fnames)
+                load(fnames{f});
+                pid=fnames{f}(1:5);
+                final_brain=fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/sub-10001/ses-2/gain_contrasts/run-1/beta_0001.nii');
+                final_brain.dat = atanh(final_corr_acc_whole); % vs amyg acc ofc
+                final_brain.fullpath = strcat(pid,'_acc_rest.nii');
+                write(final_brain,'overwrite')
+            end
+        end
+        if rest == 1
+            for f = 1:length(fnames)
+                load(fnames{f});
+                pid=fnames{f}(1:5);
+                final_brain=fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/sub-10001/ses-2/gain_contrasts/run-1/beta_0001.nii');
+                final_brain.dat = atanh(corr_acc_wholebrain); % vs amyg acc ofc
+                final_brain.fullpath = strcat(pid,'_acc_rest.nii');
+                write(final_brain,'overwrite')
+            end
         end
     end
     % the sections commented out below were run once and then I saved the
@@ -202,8 +224,8 @@ if whole_brain_networks == 1
     full_fnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
     final_brain = fmri_data(full_fnames);
     
-    final_brain.X = ones(length(full_fnames),1); 
-    %final_brain.X = [regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
+    %final_brain.X = ones(length(full_fnames),1); 
+    final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
     if remove_missing_data == 1
         % remove NaNs related to inflammation
         final_brain.dat(:, isnan(regressors.inflammation(:,1))) = [];
@@ -216,8 +238,7 @@ if whole_brain_networks == 1
         full_fnames(isnan(regressors.inc(:,1)),:)=[];
         final_brain.X(isnan(regressors.inc(:,1)),:) = [];
         regressors(isnan(regressors.inc(:,1)),:) = [];
-            
-        
+                   
         % remove NaNs related to symptoms
         final_brain.dat(:, isnan(regressors.longGeneralDistress(:,1))) = [];
         full_fnames(isnan(regressors.longGeneralDistress(:,1)),:)=[];
@@ -231,43 +252,258 @@ if whole_brain_networks == 1
         regressors(isnan(regressors.cti(:,1)),:) = [];
     end
     statobj = regress(final_brain);
-    threshobj = threshold(statobj.t,0.001,'unc','k',10);
+    threshobj = threshold(statobj.t,0.001,'unc');%,'k',5);
     orthviews(select_one_image(threshobj,1))
     table(select_one_image(threshobj,1))
+%     thresh_obj = final_brain;
+%     thresh_obj.dat = mean(thresh_obj.dat,2);
+%     thresh_obj.dat(thresh_obj.dat<0.2)=0;
+%     orthviews(thresh_obj)
     
 end    
-%% whole brain mediation: aim 3
+
+
+%% Aim 1: seed to seed version of analyses above
+if linear_seed_to_seed == 1
+    remove_missing_data = 1;
+    % the sections commented out below were run once and then I saved the
+    % final data object so I wouldn't have to regenerate it. It's still
+    % there so I can go back and recreate if needed.
+    s2sfnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
+    
+    if mid == 1
+        s2sfnames(185) = [];
+    end
+
+
+    final_brain = fmri_data(s2sfnames);
+    if exist('seed_to_seed_results','dir') == 0
+        mkdir seed_to_seed_results/
+    end
+    
+    cd('seed_to_seed_results/')
+    amyg = fmri_data(filenames(fullfile(seeddir,'*Amygdala*')));
+    vs = fmri_data(filenames(fullfile(seeddir,'VS*Rew.nii')));
+    acc = fmri_data(filenames(fullfile(seeddir,'*ACC.nii')));
+    ofc = fmri_data(filenames(fullfile(seeddir,'OFC*.nii')));
+    % apply masks to data
+    amyg_data = extract_roi_averages(final_brain,amyg);
+    vs_data = extract_roi_averages(final_brain,vs);
+    ofc_data = extract_roi_averages(final_brain,ofc);
+    acc_data = extract_roi_averages(final_brain,acc);
+
+    seed2seed = array2table([amyg_data.dat,vs_data.dat,ofc_data.dat,acc_data.dat]); 
+    seed2seed.Properties.VariableNames = {'amygdala','vs','ofc','acc'};
+
+    % combine with regressors
+    alldata = [regressors,seed2seed];
+
+    if remove_missing_data == 1
+        % remove NaNs related to inflammation
+        s2sfnames(isnan(alldata.inflammation(:,1)),:)=[];
+        alldata(isnan(alldata.inflammation(:,1)),:) = [];
+        
+        % remove NaNs related to family income
+        s2sfnames(isnan(alldata.inc(:,1)),:)=[];
+        alldata(isnan(alldata.inc(:,1)),:) = [];
+            
+%         % remove NaNs related to symptoms
+%         s2sfnames(isnan(alldata.longGeneralDistress(:,1)),:)=[];
+%         alldata(isnan(alldata.longGeneralDistress(:,1)),:) = [];
+% 
+%         % remove NaNs related to cti
+%         s2sfnames(isnan(alldata.cti(:,1)),:)=[];
+%         alldata(isnan(alldata.cti(:,1)),:) = [];
+    end
+    
+    if strcmp(region_name_for_wholebrain_analysis,'acc')
+        mdlamyg = fitlm(alldata,'amygdala  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
+        mdlofc = fitlm(alldata,'ofc  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
+        mdlvs = fitlm(alldata,'vs  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
+    elseif strcmp(region_name_for_wholebrain_analysis,'ofc')
+        mdlamyg = fitlm(alldata,'amygdala  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
+        mdlacc = fitlm(alldata,'acc  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
+        mdlvs = fitlm(alldata,'vs  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
+    elseif strcmp(region_name_for_wholebrain_analysis,'vs')
+        mdlamyg = fitlm(alldata,'amygdala  ~ longGeneralDistress + site + sex')
+        mdlacc = fitlm(alldata,'acc  ~ longGeneralDistress + site + sex + meds')
+        mdlofc = fitlm(alldata,'ofc  ~ longGeneralDistress + site + sex + meds')
+    elseif strcmp(region_name_for_wholebrain_analysis,'amyg')
+        mdlvs = fitlm(alldata,'vs  ~ longGeneralDistress + site + sex + meds')
+        mdlacc = fitlm(alldata,'acc  ~ longGeneralDistress + site + sex + meds')
+        mdlofc = fitlm(alldata,'ofc  ~ longGeneralDistress + site + sex + meds')
+    end
+
+    if mediation_seed_to_seed == 1
+        % output doesn't save super nicely so I'm not going to bother. Will
+        % run each line manually
+        save_all_mdls = 0;
+        % only writing code for VS connections to minimize tests
+        if save_all_mdls == 1
+            resultsgendis = mediation(alldata.inflammation, alldata.longGeneralDistress, alldata.amygdala,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:VStoAmygdala'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation, alldata.longAnhedonia, alldata.amygdala,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:VStoAmygdala'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation, alldata.longFears, alldata.amygdala,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:VStoAmygdala'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+                
+            resultsgendis = mediation(alldata.inflammation, alldata.longGeneralDistress, alldata.acc,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:VStoACC'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation, alldata.longAnhedonia, alldata.acc,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:VStoACC'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation, alldata.longFears, alldata.acc,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:VStoACC'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+                
+            resultsgendis = mediation(alldata.inflammation, alldata.longGeneralDistress, alldata.ofc,'names',{'X:inflammation' 'Y:GeneralDistress' 'M:VStoOFC'},'verbose','dosave','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation, alldata.longAnhedonia, alldata.ofc,'names',{'X:inflammation' 'Y:Anhedonia' 'M:VStoOFC'},'verbose','dosave','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation, alldata.longFears, alldata.ofc,'names',{'X:inflammation' 'Y:Fears' 'M:VStoOFC'},'verbose','dosave','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+        else
+            keyboard
+        end
+    end
+
+    % AIM 3 MODERATED MEDIATION
+    if moderated_mediation_seed_to_seed == 1
+        % output doesn't save super nicely so I'm not going to bother. Will
+        % run each line manually
+        save_all_mdls = 0;
+        % only writing code for VS connections to minimize tests
+        if save_all_mdls == 1
+            resultsgendis = mediation(alldata.inflammation.*alldata.cti, alldata.longGeneralDistress, alldata.amygdala.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:VStoAmygdala*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation.*alldata.cti, alldata.longAnhedonia, alldata.amygdala.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:VStoAmygdala*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation.*alldata.cti, alldata.longFears, alldata.amygdala.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:VStoAmygdala*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+                
+            resultsgendis = mediation(alldata.inflammation.*alldata.cti, alldata.longGeneralDistress, alldata.acc.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:VStoACC*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation.*alldata.cti, alldata.longAnhedonia, alldata.acc.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:VStoACC*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation.*alldata.cti, alldata.longFears, alldata.acc.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:VStoACC*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+                
+            resultsgendis = mediation(alldata.inflammation.*alldata.cti, alldata.longGeneralDistress, alldata.ofc.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:GeneralDistress' 'M:VStoOFC*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation.*alldata.cti, alldata.longAnhedonia, alldata.ofc.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:Anhedonia' 'M:VStoOFC*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation.*alldata.cti, alldata.longFears, alldata.ofc.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:Fears' 'M:VStoOFC*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+        else
+            keyboard
+        end
+    end
+end
+
+%% whole brain mediation: aim 2
 % here I extend the roi analyses presented in aims 1 and 2 to understand if
 % there is anywhere in the brain that appears to systematically covary with
 % variables of interest in the context of mediation
+
 if whole_brain_mediation_analysis == 1
+    remove_missing_data = 1;
     full_fnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
+
+    if mid == 1
+        full_fnames(185) = [];
+    end
+    
+    if remove_missing_data == 1
+        % remove NaNs related to inflammation
+        full_fnames(isnan(regressors.inflammation(:,1)),:)=[];
+        regressors(isnan(regressors.inflammation(:,1)),:) = [];
+        
+        % remove NaNs related to family income
+        full_fnames(isnan(regressors.inc(:,1)),:)=[];
+        regressors(isnan(regressors.inc(:,1)),:) = [];
+            
+        % remove NaNs related to symptoms
+        full_fnames(isnan(regressors.longGeneralDistress(:,1)),:)=[];
+        regressors(isnan(regressors.longGeneralDistress(:,1)),:) = [];
+
+        % remove NaNs related to cti
+        full_fnames(isnan(regressors.cti(:,1)),:)=[];
+        regressors(isnan(regressors.cti(:,1)),:) = [];
+    end
+
     final_brain = fmri_data(full_fnames);
     % set up directories
-    mkdir mediation_results_antgain
-    mkdir anhedonia; mkdir fears; mkdir general_distress
-    
-    cd mediation_results_antgain
+    if exist("mediation_results/",'dir') == 0
+        mkdir mediation_results
+    end
+
+    cd mediation_results
+
+    if exist('general_distress','dir') == 0   
+        mkdir anhedonia; mkdir fears; mkdir general_distress
+    end
         
     names = {'X:inflammation' 'Y:longitudinalsymptom' 'M:VStoWholebrain'};
     mask = which('gray_matter_mask.img');
     
-    cd(fullfile(basedir,'/mediation_results_antgain/general_distress'))
+    cd(fullfile(basedir,'/mediation_results/general_distress'))
 
-    resultsgendis = mediation_brain(regressors.inflammation, regressors.longGeneralDistress, final_brain.fullpath,'names',names,'mask', mask,'noverbose');    
+    resultsgendis = mediation_brain(regressors.inflammation, regressors.longGeneralDistress, final_brain.fullpath,'names',names,'mask', mask,'noverbose','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
     
-    cd(fullfile(basedir,'/mediation_results_antgain/anhedonia'))
+    cd(fullfile(basedir,'/mediation_results/anhedonia'))
 
-    resultsanhed = mediation_brain(regressors.inflammation, regressors.longAnhedonia, final_brain.fullpath,'names',names,'mask', mask,'noverbose');
+    resultsanhed = mediation_brain(regressors.inflammation, regressors.longAnhedonia, final_brain.fullpath,'names',names,'mask', mask,'noverbose','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);
 
-    cd(fullfile(basedir,'/mediation_results_antgain/fears'))
+    cd(fullfile(basedir,'/mediation_results/fears'))
 
-    resultsfears = mediation_brain(regressors.inflammation, regressors.longFears, final_brain.fullpath,'names',names,'mask', mask,'noverbose');
+    resultsfears = mediation_brain(regressors.inflammation, regressors.longFears, final_brain.fullpath,'names',names,'mask', mask,'noverbose','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);
 
     % use this code to change around folders and check for results
     mediation_brain_results('ab', 'thresh', ...
-    0.001, 'size', 5, ...
+    0.001, ... % can insert for cluster thresh: , 'size', 5
     'whitebackground','slices', 'tables', 'names', 'save');
+end
+
+
+% AIM 3 MODERATED MEDIATION
+if whole_brain_moderated_mediation == 1
+    remove_missing_data = 1;
+    full_fnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
+
+    if mid == 1
+        full_fnames(185) = [];
+    end
+    
+    if remove_missing_data == 1
+        % remove NaNs related to inflammation
+        full_fnames(isnan(regressors.inflammation(:,1)),:)=[];
+        regressors(isnan(regressors.inflammation(:,1)),:) = [];
+        
+        % remove NaNs related to family income
+        full_fnames(isnan(regressors.inc(:,1)),:)=[];
+        regressors(isnan(regressors.inc(:,1)),:) = [];
+            
+        % remove NaNs related to symptoms
+        full_fnames(isnan(regressors.longGeneralDistress(:,1)),:)=[];
+        regressors(isnan(regressors.longGeneralDistress(:,1)),:) = [];
+
+        % remove NaNs related to cti
+        full_fnames(isnan(regressors.cti(:,1)),:)=[];
+        regressors(isnan(regressors.cti(:,1)),:) = [];
+    end
+
+    final_brain = fmri_data(full_fnames);
+    % set up directories
+    if exist("moderated_mediation_results/",'dir') == 0
+        mkdir moderated_mediation_results
+    end
+
+    cd moderated_mediation_results
+
+    if exist('general_distress','dir') == 0   
+        mkdir anhedonia; mkdir fears; mkdir general_distress
+    end
+        
+    names = {'X:inflammation' 'Y:longitudinalsymptom' 'M:VStoWholebrain'};
+    mask = which('gray_matter_mask.img');
+    
+    cd(fullfile(basedir,'/moderated_mediation_results/general_distress'))
+
+    resultsgendis = mediation_brain(regressors.inflammation, regressors.longGeneralDistress, final_brain.fullpath,'names',names,'mask', mask,'noverbose','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+    
+    cd(fullfile(basedir,'/moderated_mediation_results/anhedonia'))
+
+    resultsanhed = mediation_brain(regressors.inflammation, regressors.longAnhedonia, final_brain.fullpath,'names',names,'mask', mask,'noverbose','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);
+
+    cd(fullfile(basedir,'/moderated_mediation_results/fears'))
+
+    resultsfears = mediation_brain(regressors.inflammation, regressors.longFears, final_brain.fullpath,'names',names,'mask', mask,'noverbose','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);
+
+    % use this code to change around folders and check for results
+    mediation_brain_results('ab', 'thresh', ...
+    0.001, ... % can insert for cluster thresh: , 'size', 5
+    'whitebackground','slices', 'tables', 'names', 'save');
+
 end
 
 % no significant clusters are found for the indirect effect from
@@ -310,7 +546,12 @@ if hyper == 1
         % Available variables are: final_corr_acc_voxel_to_region
         % final_corr_ofc_voxel_to_region final_corr_amyg_voxel_to_region
         % final_corr_vs_voxel_to_region 
-        unaligned_mats{f} = final_corr_vs_voxel_to_region;
+        if mid == 1
+            unaligned_mats{f} = final_corr_vs_voxel_to_region;
+        end
+        if rest == 1
+            unaligned_mats{f} = corr_vs_voxel_to_region;
+        end
     end
     unaligned_mats2 = unaligned_mats;
     
@@ -676,4 +917,40 @@ end
 % pull connections for unaligned data that contribute to relationship with
 % each ourcome
 
+if network_based_analyses == 1
+    atl = fmri_data('ROIs_300inVol_MNI.nii');
+    
+    labels = readtable('ROIs_300inVol_MNI_allInfo.txt');
+    
+    region_names = readtable("ROIs_anatomicalLabels.txt"); % 0=cortexMid,1=cortexL,2=cortexR,3=hippocampus,4=amygdala,5=basalGanglia,6=thalamus,7=cerebellum
+    
+    cerebellum_nodes = flip(find(region_names.x0_cortexMid==7));
+    for i = 1:length(cerebellum_nodes)
+        labels(cerebellum_nodes(i),:) = [];
+    end
+    
+    roi_ids_rew = find(contains(labels.netName,'Reward'));
+    rewdat = atl; rewdat.dat(:,1) = 0;
+    
+    for i = 1:length(roi_ids_rew)
+        rewdat.dat(atl.dat==roi_ids_rew(i)) = 1;
+    end
+    
+    roi_ids_dm = find(contains(labels.netName,'Default'));
+    
+    dmdat = atl; dmdat.dat(:,1) = 0;
+    
+    for i = 1:length(roi_ids_dm)
+        dmdat.dat(atl.dat==roi_ids_dm(i)) = 1;
+    end
+    
+    roi_ids_fp = find(contains(labels.netName,'FrontoParietal'));
+    
+    fpdat = atl; fpdat.dat(:,1) = 0;
+    
+    for i = 1:length(roi_ids_fp)
+        fpdat.dat(atl.dat==roi_ids_fp(i)) = 1;
+    end
 
+
+end

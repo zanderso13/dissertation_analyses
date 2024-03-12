@@ -102,7 +102,7 @@ if doing_rest == 1
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/AIB_RestOnly_Newtworks';
     cd(basedir)
     
-    rest_fname = filenames(fullfile(strcat('sub-',num2str(pid),'*/ses-1/*.nii')));
+    rest_fname = filenames(fullfile(strcat('sub-',num2str(pid),'*/ses-1/ssub*.nii')));
 
     dat = fmri_data(rest_fname{1});
     seitz = extract_roi_averages(dat, atl);

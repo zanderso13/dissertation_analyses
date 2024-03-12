@@ -11,7 +11,7 @@ task = 'AIB_RestOnly_Newtworks'; % eventually beta_series
 
 cd(fullfile(basedir,task))
 
-fnames = filenames(fullfile('sub*/ses-1/*rest_final.nii'));
+fnames = filenames(fullfile('sub*/ses-1/ssub*rest_final.nii'));
 
 conn_list = filenames(fullfile(corrdir,strcat('*.mat')));
 

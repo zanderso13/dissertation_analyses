@@ -2,9 +2,9 @@
 function smooth_single_sub(PID,ses,run,overwrite)
 %% var set up
 if nargin==0 % defaults just for testing
-    PID = 50002;  
+    PID = 10002;  
     overwrite = 1;
-    ses = 2;
+    ses = 1;
     run = 1;
 end
 
@@ -19,9 +19,9 @@ ndummies=0;
 % FL directory for saving 1st level results: beta images, SPM.mat, etc.
 % in{1} = {fullfile(fl_dir, PID, strcat('ses-',num2str(ses)), strcat('run-', num2str(run)), 'MID')};
 
-rundir = fullfile(preproc_dir, PID, strcat('ses-', num2str(ses)), 'func');
+rundir = fullfile(preproc_dir, PID, strcat('ses-', num2str(ses)));
 
-in{1} = cellstr(spm_select('ExtFPList', rundir, strcat('.*task-mid_run-0',num2str(run),'_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'), ndummies+1:9999));
+in{1} = cellstr(spm_select('ExtFPList', rundir, strcat('.*task-rest_final.nii'), ndummies+1:9999));
 
 if isempty(in{1}{1})
     warning('No preprocd functional found')
