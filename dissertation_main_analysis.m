@@ -2,7 +2,7 @@
 prep_behavioral_data = 1;
 
 % what task?
-mid = 0; rest = 1;
+mid = 1; rest = 0;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
@@ -25,10 +25,8 @@ look_at_multivariate_rotation_estimates = 0;
 
 mediate_with_pls_components = 0;
 
-which_symptom = 'longFears'; % longAnhedoniaApprehension longFears longGeneralDistress
-% beta series correlations will be used for task. resting state func conn
-% will be what it is. hyperalignment section will be appended at the very
-% end. 
+network_based_analyses = 0;
+
 if mid == 1
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats';
 end
@@ -84,7 +82,11 @@ if prep_behavioral_data == 1
         % immune
         if ~isempty(find(immune.PID==id{sub,1}))
             %i(sub,1) = immune.T1BDicsavg(find(immune.PID==id{sub,1}));
-            i(sub,1) = immune.ZT1BDcrpLN(find(immune.PID==id{sub,1}));
+            i(sub,1) = immune.ZT1BDcrpLN(find(immune.PID==id{sub,1})); %
+            %p=0.047 for crp-->vs-ofc connectivity in mid
+            %i(sub,1) = immune.ZT1BDil8LN(find(immune.PID==id{sub,1})); % p=0.016 in mid vs-acc
+            %i(sub,1) = immune.ZT1BDil10LN(find(immune.PID==id{sub,1})); % p=
+            
         else
             fprintf(strcat(num2str(id{sub,1}),': missing immune data \n'))
             i(sub,1) = NaN;
@@ -203,8 +205,8 @@ if whole_brain_networks == 1
                 load(fnames{f});
                 pid=fnames{f}(1:5);
                 final_brain=fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/sub-10001/ses-2/gain_contrasts/run-1/beta_0001.nii');
-                final_brain.dat = atanh(final_corr_acc_whole); % vs amyg acc ofc
-                final_brain.fullpath = strcat(pid,'_acc_rest.nii');
+                final_brain.dat = atanh(final_corr_vs_whole); % vs amyg acc ofc
+                final_brain.fullpath = strcat(pid,'_vs_antgain.nii');
                 write(final_brain,'overwrite')
             end
         end
@@ -213,8 +215,8 @@ if whole_brain_networks == 1
                 load(fnames{f});
                 pid=fnames{f}(1:5);
                 final_brain=fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series/sub-10001/ses-2/gain_contrasts/run-1/beta_0001.nii');
-                final_brain.dat = atanh(corr_acc_wholebrain); % vs amyg acc ofc
-                final_brain.fullpath = strcat(pid,'_acc_rest.nii');
+                final_brain.dat = atanh(corr_vs_wholebrain); % vs amyg acc ofc
+                final_brain.fullpath = strcat(pid,'_vs_rest.nii');
                 write(final_brain,'overwrite')
             end
         end
@@ -225,8 +227,8 @@ if whole_brain_networks == 1
     full_fnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
     final_brain = fmri_data(full_fnames);
     
-    %final_brain.X = ones(length(full_fnames),1); 
-    final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
+    final_brain.X = ones(length(full_fnames),1); 
+    %final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
     if remove_missing_data == 1
         % remove NaNs related to inflammation
         final_brain.dat(:, isnan(regressors.inflammation(:,1))) = [];
@@ -253,7 +255,7 @@ if whole_brain_networks == 1
         regressors(isnan(regressors.cti(:,1)),:) = [];
     end
     statobj = regress(final_brain);
-    threshobj = threshold(statobj.t,0.001,'unc');%,'k',5);
+    threshobj = threshold(statobj.t,0.001,'unc','k',5);
     orthviews(select_one_image(threshobj,1))
     table(select_one_image(threshobj,1))
 %     thresh_obj = final_brain;
@@ -320,21 +322,21 @@ if linear_seed_to_seed == 1
    
 
     if strcmp(region_name_for_wholebrain_analysis,'acc')
-        mdlamyg = fitlm(alldata,'amygdala  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
-        mdlofc = fitlm(alldata,'ofc  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
-        mdlvs = fitlm(alldata,'vs  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
+        mdlamyg = fitlm(alldata,'amygdala  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        mdlofc = fitlm(alldata,'ofc  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        mdlvs = fitlm(alldata,'vs  ~ inflammation + site + sex + meds + race + inc + ethnicity')
     elseif strcmp(region_name_for_wholebrain_analysis,'ofc')
-        mdlamyg = fitlm(alldata,'amygdala  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
-        mdlacc = fitlm(alldata,'acc  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
-        mdlvs = fitlm(alldata,'vs  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
+        mdlamyg = fitlm(alldata,'amygdala  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        mdlacc = fitlm(alldata,'acc  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        mdlvs = fitlm(alldata,'vs  ~ inflammation + site + sex + meds + race + inc + ethnicity')
     elseif strcmp(region_name_for_wholebrain_analysis,'vs')
-        mdlamyg = fitlm(alldata,'amygdala  ~ longGeneralDistress + site + sex')
-        mdlacc = fitlm(alldata,'acc  ~ longGeneralDistress + site + sex + meds')
-        mdlofc = fitlm(alldata,'ofc  ~ longGeneralDistress + site + sex + meds')
+        mdlamyg = fitlm(alldata,'amygdala  ~ inflammation + site + sex + race + inc + ethnicity')
+        mdlacc = fitlm(alldata,'acc  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        mdlofc = fitlm(alldata,'ofc  ~ inflammation + site + sex + meds + race + inc + ethnicity')
     elseif strcmp(region_name_for_wholebrain_analysis,'amyg')
-        mdlvs = fitlm(alldata,'vs  ~ longGeneralDistress + site + sex + meds')
-        mdlacc = fitlm(alldata,'acc  ~ longGeneralDistress + site + sex + meds')
-        mdlofc = fitlm(alldata,'ofc  ~ longGeneralDistress + site + sex + meds')
+        mdlvs = fitlm(alldata,'vs  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
+        mdlacc = fitlm(alldata,'acc  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
+        mdlofc = fitlm(alldata,'ofc  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
     end
 
     if mediation_seed_to_seed == 1
