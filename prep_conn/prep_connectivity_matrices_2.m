@@ -6,10 +6,10 @@ doing_rest = 1;
 if doing_beta_series == 1
     atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
     % atl = fmri_data('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/300ROIatlas/300_ROI_Set/ROIs_300inVol_MNI.nii');
-    vs = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/VS_8mmsphere_Oldham_Rew.nii');
+    vs=atl; vs.dat(:)=0; vs.dat(atl.dat==246)= 1; vs.dat(atl.dat==247)=1;%fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/VS_8mmsphere_Oldham_Rew.nii');
     ofc = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/OFC_8mmsphere_Oldham.nii');
     acc = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/bilat_AAL3_ACC.nii');
-    amyg = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/HO_Amygdala_50prob.nii');
+    amyg=atl; amyg.dat(:)=0; amyg.dat(atl.dat==244)= 1; amyg.dat(atl.dat==245)=1;%fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/HO_Amygdala_50prob.nii');
     
     savedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices';
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/beta_series';
@@ -81,7 +81,7 @@ if doing_beta_series == 1
         curr_filename = strcat(num2str(pid),'_',run,'.mat');
 
         save(fullfile(savedir,curr_filename),"corr_vs_wholebrain", "corr_ofc_wholebrain",...
-            "corr_amyg_wholebrain", "corr_acc_wholebrain","seitz_mat",...
+            "corr_amyg_wholebrain", "corr_acc_wholebrain","seitz","seitz_mat",...
             "corr_vs_voxel_to_region","corr_ofc_voxel_to_region","corr_acc_voxel_to_region",...
             "corr_amyg_voxel_to_region")
 
@@ -94,10 +94,10 @@ if doing_rest == 1
     atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
     
     % atl = fmri_data('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/300ROIatlas/300_ROI_Set/ROIs_300inVol_MNI.nii');
-    vs = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/VS_8mmsphere_Oldham_Rew.nii');
+    vs=atl; vs.dat(:)=0; vs.dat(atl.dat==246)= 1; vs.dat(atl.dat==247)=1;%fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/VS_8mmsphere_Oldham_Rew.nii');
     ofc = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/OFC_8mmsphere_Oldham.nii');
     acc = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/bilat_AAL3_ACC.nii');
-    amyg = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/HO_Amygdala_50prob.nii');
+    amyg=atl; amyg.dat(:)=0; amyg.dat(atl.dat==244)= 1; amyg.dat(atl.dat==245)=1;%fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/HO_Amygdala_50prob.nii');
     
     savedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices';
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/AIB_RestOnly_Newtworks';
@@ -153,10 +153,10 @@ if doing_rest == 1
         end
     end
     
-    curr_filename = strcat(num2str(pid),'_rest.mat');
+    curr_filename = strcat(num2str(pid),'_',run,'_rest.mat');
     how_many_volumes = size(dat.dat,2);
     save(fullfile(savedir,curr_filename),"corr_vs_wholebrain", "corr_ofc_wholebrain",...
-        "corr_amyg_wholebrain", "corr_acc_wholebrain","seitz_mat",...
+        "corr_amyg_wholebrain", "corr_acc_wholebrain","seitz","seitz_mat",...
         "corr_vs_voxel_to_region","corr_ofc_voxel_to_region","corr_acc_voxel_to_region",...
         "corr_amyg_voxel_to_region", "how_many_volumes")
         

@@ -2,16 +2,17 @@
 prep_behavioral_data = 1;
 
 % what task?
-mid = 0; rest = 1;
+mid = 1; rest = 0;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
-whole_brain_networks = 0; overwrite_nii = 0; 
+whole_brain_networks = 1; overwrite_nii = 1; 
 
-linear_seed_to_seed = 1; seeddir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
+linear_seed_to_seed = 0; seeddir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
 mediation_seed_to_seed = 0; % linear seed to see must be on
 moderated_mediation_seed_to_seed = 0;
-network_based_analyses = 1; overwrite_networks = 0;
+network_based_analyses = 0; overwrite_networks = 0; mediation_networks = 0; 
+moderated_mediation_networks = 0; % network based analyses must be on
 
 whole_brain_mediation_analysis = 0; 
 whole_brain_moderated_mediation = 0;
@@ -57,9 +58,9 @@ end
 % need to generate corrs. This was only true for one region, though I worry
 % this reflects a larger issue, potentially related to too much filtering
 % of their signal
-if mid == 1
-    fnames(185) = [];
-end
+% if mid == 1
+%     fnames(185) = [];
+% end
 
 if prep_behavioral_data == 1
     
@@ -191,7 +192,7 @@ end
 
 if whole_brain_networks == 1
     %% whole brain relationships between brain, inflammation and brain, symptoms
-    remove_missing_data = 1;
+    remove_missing_data = 0;
     % This will also be my sanity check about what networks are associated
     % with each of the seeds I've chosen to study. I need to output average
     % images for the subs still in the study (stored in fnames) and then
@@ -299,10 +300,12 @@ if linear_seed_to_seed == 1
     if remove_missing_data == 1
         % remove NaNs related to inflammation
         s2sfnames(isnan(alldata.inflammation(:,1)),:)=[];
+        fnames(isnan(alldata.inflammation(:,1)),:) = [];
         alldata(isnan(alldata.inflammation(:,1)),:) = [];
         
         % remove NaNs related to family income
         s2sfnames(isnan(alldata.inc(:,1)),:)=[];
+        fnames(isnan(alldata.inc(:,1)),:) = [];
         alldata(isnan(alldata.inc(:,1)),:) = [];
             
 %         % remove NaNs related to symptoms
@@ -333,8 +336,8 @@ if linear_seed_to_seed == 1
         mdlacc = fitlm(alldata,'acc  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
         mdlofc = fitlm(alldata,'ofc  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
     end
-
-    if mediation_seed_to_seed == 1
+    %% AIM 2
+    if mediation_seed_to_seed == 1 
         % output doesn't save super nicely so I'm not going to bother. Will
         % run each line manually
         save_all_mdls = 0;
@@ -413,8 +416,22 @@ if linear_seed_to_seed == 1
         for i = 1:length(roi_ids_fp)
             fpdat.dat(atl.dat==roi_ids_fp(i)) = 1;
         end
+
+        roi_ids_s = find(contains(labels.netName,'Salience'));
+        
+        fpdat = atl; fpdat.dat(:,1) = 0;
+        
+        for i = 1:length(roi_ids_s)
+            saldat.dat(atl.dat==roi_ids_s(i)) = 1;
+        end
+
         if overwrite_networks == 1
-            cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices')
+            if rest == 1
+                cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices')
+            end
+            if mid == 1
+                cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats')
+            end
             for i = 1:length(fnames)
                 fprintf(strcat('Working on:',fnames{i}(1:5),'\n'))
                 load(fnames{i});
@@ -434,23 +451,129 @@ if linear_seed_to_seed == 1
                     end
                 end
             end
-            save /projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/seed_to_seed_results/seitzman_time_series.mat final_seitz_mat
             cd('seed_to_seed_results')
+            save seitzman_time_series.mat final_seitz_mat
+            
         else
-            load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/seed_to_seed_results/seitzman_time_series.mat')
+            if rest == 1
+                load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/seed_to_seed_results/seitzman_time_series.mat')
+            end
+
+            if mid == 1
+                load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/seed_to_seed_results/seitzman_time_series.mat')
+            end
+
         end
-    
         if rest == 1
-            for i = 1:length(final_seitz_mat)              
+            for i = 1:length(final_seitz_mat) % cell array. so use length              
                 xsubs_corr_mat(:,:,i) = corr(final_seitz_mat{i}');
             end
         end
         if mid == 1
-            for i = 1:length(final_seitz_mat)              
+            for i = 1:size(final_seitz_mat,3)              
                 xsubs_corr_mat(:,:,i) = corr(final_seitz_mat(:,:,i)');
             end
         end
+        
+        %
 
+        for i = 1:size(xsubs_corr_mat,3)
+            temprew = xsubs_corr_mat(roi_ids_rew,roi_ids_rew,i);
+            temprew(temprew==1)=[];
+            connrew(i,1) = mean(temprew);
+            
+            tempdmn = xsubs_corr_mat(roi_ids_dm,roi_ids_dm,i);
+            tempdmn(tempdmn==1)=[];
+            conndmn(i,1) = mean(tempdmn);
+
+
+            tempfpn = xsubs_corr_mat(roi_ids_fp,roi_ids_fp,i);
+            tempfpn(tempfpn==1)=[];
+            connfpn(i,1) = mean(tempfpn);
+
+            tempsal = xsubs_corr_mat(roi_ids_s,roi_ids_s,i);
+            tempsal(tempsal==1)=[];
+            connsal(i,1) = mean(tempsal);
+
+            temprewtodmn = xsubs_corr_mat(roi_ids_rew,roi_ids_dm,i);
+            temprewtodmn(temprewtodmn==1)=[];
+            connrewtodmn(i,1) = mean(temprewtodmn(:));
+            
+        end
+        networks_conn = [connrew,conndmn,connfpn,connsal,connrewtodmn];
+        networks_conn = array2table(networks_conn);
+        networks_conn.Properties.VariableNames = {'Reward','DefaultMode','FrontoParietal','Salience','RewardtoDMN'};
+        
+        alldata = [alldata,networks_conn];
+
+        mdlrew = fitlm(alldata,'Reward  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        mdldmn = fitlm(alldata,'DefaultMode  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        mdlfpn = fitlm(alldata,'FrontoParietal  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        mdlsal = fitlm(alldata,'Salience  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        mdlrewdmn = fitlm(alldata,'RewardtoDMN  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        
+        mdlrew2 = fitlm(alldata,'Reward  ~ longGeneralDistress + longAnhedonia + longFears + site + sex + meds + race + inc + ethnicity')
+        mdldmn2 = fitlm(alldata,'DefaultMode  ~ longGeneralDistress + longAnhedonia + longFears + site + sex + meds + race + inc + ethnicity')
+        mdlfpn2 = fitlm(alldata,'FrontoParietal  ~ longGeneralDistress + longAnhedonia + longFears + site + sex + meds + race + inc + ethnicity')
+        mdlsal = fitlm(alldata,'Salience  ~ longGeneralDistress + longAnhedonia + longFears + site + sex + meds + race + inc + ethnicity')
+        mdlrewdmn2 = fitlm(alldata,'RewardtoDMN  ~ longGeneralDistress + longAnhedonia + longFears + site + sex + meds + race + inc + ethnicity')
+  
+    end
+
+    %% AIM 2
+    if mediation_networks == 1 
+        % output doesn't save super nicely so I'm not going to bother. Will
+        % run each line manually
+        save_all_mdls = 0;
+        % only writing code for VS connections to minimize tests
+        if save_all_mdls == 1
+            resultsgendis = mediation(alldata.inflammation, alldata.longGeneralDistress, alldata.Reward,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:RewardNetwork'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation, alldata.longAnhedonia, alldata.Reward,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:RewardNetwork'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation, alldata.longFears, alldata.Reward,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:RewardNetwork'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+                
+            resultsgendis = mediation(alldata.inflammation, alldata.longGeneralDistress, alldata.DefaultMode,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:DefaultMode'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation, alldata.longAnhedonia, alldata.DefaultMode,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:DefaultMode'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation, alldata.longFears, alldata.DefaultMode,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:DefaultMode'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+                
+            resultsgendis = mediation(alldata.inflammation, alldata.longGeneralDistress, alldata.FrontoParietal,'names',{'X:inflammation' 'Y:GeneralDistress' 'M:FrontoParietal'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation, alldata.longAnhedonia, alldata.FrontoParietal,'names',{'X:inflammation' 'Y:Anhedonia' 'M:FrontoParietal'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation, alldata.longFears, alldata.FrontoParietal,'names',{'X:inflammation' 'Y:Fears' 'M:FrontoParietal'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            
+            resultsgendis = mediation(alldata.inflammation, alldata.longGeneralDistress, alldata.Salience,'names',{'X:inflammation' 'Y:GeneralDistress' 'M:Salience'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation, alldata.longAnhedonia, alldata.Salience,'names',{'X:inflammation' 'Y:Anhedonia' 'M:Salience'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation, alldata.longFears, alldata.Salience,'names',{'X:inflammation' 'Y:Fears' 'M:Salience'},'verbose','plots','doCIs','covs',[alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+        
+        else
+            keyboard
+        end
+    end
+
+    % AIM 3 MODERATED MEDIATION
+    if moderated_mediation_networks == 1
+        % output doesn't save super nicely so I'm not going to bother. Will
+        % run each line manually
+        save_all_mdls = 0;
+        % only writing code for VS connections to minimize tests
+        if save_all_mdls == 1
+            resultsgendis = mediation(alldata.inflammation.*alldata.cti, alldata.longGeneralDistress, alldata.Reward.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:Reward*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation.*alldata.cti, alldata.longAnhedonia, alldata.Reward.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:Reward*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation.*alldata.cti, alldata.longFears, alldata.Reward.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:Reward*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+                
+            resultsgendis = mediation(alldata.inflammation.*alldata.cti, alldata.longGeneralDistress, alldata.DefaultMode.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:DefaultMode*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation.*alldata.cti, alldata.longAnhedonia, alldata.DefaultMode.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:DefaultMode*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation.*alldata.cti, alldata.longFears, alldata.DefaultMode.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:longitudinalsymptom' 'M:DefaultMode*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+                
+            resultsgendis = mediation(alldata.inflammation.*alldata.cti, alldata.longGeneralDistress, alldata.FrontoParietal.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:GeneralDistress' 'M:FrontoParietal*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation.*alldata.cti, alldata.longAnhedonia, alldata.FrontoParietal.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:Anhedonia' 'M:FrontoParietal*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation.*alldata.cti, alldata.longFears, alldata.FrontoParietal.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:Fears' 'M:FrontoParietal*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+        
+            resultsgendis = mediation(alldata.inflammation.*alldata.cti, alldata.longGeneralDistress, alldata.Salience.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:GeneralDistress' 'M:Salience*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsanhed = mediation(alldata.inflammation.*alldata.cti, alldata.longAnhedonia, alldata.Salience.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:Anhedonia' 'M:Salience*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+            resultsfears = mediation(alldata.inflammation.*alldata.cti, alldata.longFears, alldata.Salience.*alldata.cti,'names',{'X:inflammation*CTI' 'Y:Fears' 'M:Salience*CTI'},'verbose','plots','doCIs','covs',[alldata.cti,alldata.site,alldata.sex,alldata.ethnicity,alldata.race,alldata.inc,alldata.meds]);    
+
+        else
+            keyboard
+        end
     end
 end
 

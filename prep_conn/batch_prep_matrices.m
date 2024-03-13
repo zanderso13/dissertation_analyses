@@ -7,13 +7,14 @@ repodir = '/home/zaz3744/repo';
 run = 'run-1'; % run-2, rest will only have run-1
 
 % What task are you running?
-task = 'AIB_RestOnly_Newtworks'; % eventually beta_series 
+task = 'AIB_RestOnly_Newtworks'; % beta_series AIB_RestOnly_Newtworks
 
 cd(fullfile(basedir,task))
 
 fnames = filenames(fullfile('sub*/ses-1/ssub*rest_final.nii'));
+%fnames = filenames(fullfile(strcat('sub*/ses-2/gain_contrasts/',run,'/beta_0001.nii')));
 
-conn_list = filenames(fullfile(corrdir,strcat('*.mat')));
+conn_list = filenames(fullfile(corrdir,strcat('*',run,'*.mat')));
 
 counter = 1;
 for sub = 1:length(fnames)

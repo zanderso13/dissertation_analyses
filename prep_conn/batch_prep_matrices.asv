@@ -1,4 +1,4 @@
-basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/';
+basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging';
 scriptdir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/scriptdir';
 corrdir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices';
 repodir = '/home/zaz3744/repo';
@@ -7,11 +7,12 @@ repodir = '/home/zaz3744/repo';
 run = 'run-2'; % run-2, rest will only have run-1
 
 % What task are you running?
-task = 'beta_series'; % eventually rest
+task = 'beta_series'; % beta_series AIB_RestOnly_Newtworks
 
 cd(fullfile(basedir,task))
 
-fnames = filenames(fullfile('sub*/ses*/gain_contrasts/',run,'SPM.mat'));
+%fnames = filenames(fullfile('sub*/ses-1/ssub*rest_final.nii'));
+fnames = filenames(fullfile(strcat('sub*/ses-2/gain_contrasts/',run,'/beta_0001.nii')));
 
 conn_list = filenames(fullfile(corrdir,strcat('*',run,'*.mat')));
 
@@ -37,15 +38,15 @@ for sub = 1:length(new_list)
 
     % this bit will run the loop one subject at a time for testing
 
-    % prep_connectivity_matrices(num2str(ids),run)
+%     prep_connectivity_matrices_2(num2str(ids),run)
 
-    % this bit will write out text files then submit them to the cluster
+%     % this bit will write out text files then submit them to the cluster
         s = ['#!/bin/bash\n\n'...
      '#SBATCH -A p30954\n'...
      '#SBATCH -p short\n'...
      '#SBATCH -t 01:00:00\n'...  
      '#SBATCH --mem=30G\n\n'...
-     'matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath(''' repodir ''')); prep_connectivity_matrices(' num2str(ids) ',''' run '''); quit"\n\n']; 
+     'matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath(''' repodir ''')); prep_connectivity_matrices_2(' num2str(ids) ',''' run '''); quit"\n\n']; 
    
      scriptfile = fullfile(scriptdir, 'first_level_script.sh');
      fout = fopen(scriptfile, 'w');
@@ -53,6 +54,6 @@ for sub = 1:length(new_list)
      
      !chmod 777 first_level_script.sh
      !sbatch first_level_script.sh
-     keyboard
+%      
 
 end

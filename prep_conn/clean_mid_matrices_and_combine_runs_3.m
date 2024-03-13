@@ -36,6 +36,7 @@ for f = 1:length(fnames2)
         final_corr_vs_whole = (final_corr_vs_whole+final_corr_vs_whole2)./2;
         
         % whole seitzman atlas
+        seitz = [m1.(strcat('sub',pid)).seitz;m2.(strcat('sub',pid)).seitz];
         seitz_mat = [m1.(strcat('sub',pid)).seitz_mat;m2.(strcat('sub',pid)).seitz_mat]';
         
         % corr_amyg_wholebrain
@@ -96,7 +97,7 @@ for f = 1:length(fnames2)
         save_fname = strcat(pid,'_final_ant.mat');
         save(fullfile(savedir,save_fname),"final_corr_amyg_voxel_to_region",...
             "final_corr_vs_voxel_to_region","final_corr_ofc_voxel_to_region","final_corr_acc_voxel_to_region",...
-            "final_corr_vs_whole","final_corr_ofc_whole","final_corr_acc_whole","final_corr_amyg_whole","seitz_mat")
+            "final_corr_vs_whole","final_corr_ofc_whole","final_corr_acc_whole","final_corr_amyg_whole","seitz","seitz_mat")
     end
 end
 
