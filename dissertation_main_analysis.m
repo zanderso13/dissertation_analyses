@@ -2,7 +2,7 @@
 prep_behavioral_data = 1;
 
 % what task?
-mid = 1; rest = 0;
+mid = 0; rest = 1;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
@@ -11,6 +11,7 @@ whole_brain_networks = 0; overwrite_nii = 0;
 linear_seed_to_seed = 1; seeddir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
 mediation_seed_to_seed = 0; % linear seed to see must be on
 moderated_mediation_seed_to_seed = 0;
+network_based_analyses = 1; overwrite_networks = 0;
 
 whole_brain_mediation_analysis = 0; 
 whole_brain_moderated_mediation = 0;
@@ -25,7 +26,6 @@ look_at_multivariate_rotation_estimates = 0;
 
 mediate_with_pls_components = 0;
 
-network_based_analyses = 0;
 
 if mid == 1
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats';
@@ -81,8 +81,8 @@ if prep_behavioral_data == 1
         id{sub,1} = str2num(fnames{sub}(1:5));
         % immune
         if ~isempty(find(immune.PID==id{sub,1}))
-            %i(sub,1) = immune.T1BDicsavg(find(immune.PID==id{sub,1}));
-            i(sub,1) = immune.ZT1BDcrpLN(find(immune.PID==id{sub,1})); %
+            i(sub,1) = immune.T1BDicsavg(find(immune.PID==id{sub,1}));
+            %i(sub,1) = immune.ZT1BDcrpLN(find(immune.PID==id{sub,1})); %
             %p=0.047 for crp-->vs-ofc connectivity in mid
             %i(sub,1) = immune.ZT1BDil8LN(find(immune.PID==id{sub,1})); % p=0.016 in mid vs-acc
             %i(sub,1) = immune.ZT1BDil10LN(find(immune.PID==id{sub,1})); % p=
@@ -273,11 +273,6 @@ if linear_seed_to_seed == 1
     % final data object so I wouldn't have to regenerate it. It's still
     % there so I can go back and recreate if needed.
     s2sfnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
-    
-    if mid == 1
-        s2sfnames(185) = [];
-    end
-
 
     final_brain = fmri_data(s2sfnames);
     if exist('seed_to_seed_results','dir') == 0
@@ -382,6 +377,80 @@ if linear_seed_to_seed == 1
         else
             keyboard
         end
+    end
+
+    if network_based_analyses == 1
+        atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
+        
+        labels = readtable('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI_allInfo.txt');
+        
+        region_names = readtable("/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_anatomicalLabels.txt"); % 0=cortexMid,1=cortexL,2=cortexR,3=hippocampus,4=amygdala,5=basalGanglia,6=thalamus,7=cerebellum
+        
+        cerebellum_nodes = flip(find(region_names.x0_cortexMid==7));
+        for i = 1:length(cerebellum_nodes)
+            labels(cerebellum_nodes(i),:) = [];
+        end
+        
+        roi_ids_rew = find(contains(labels.netName,'Reward'));
+        rewdat = atl; rewdat.dat(:,1) = 0;
+        
+        for i = 1:length(roi_ids_rew)
+            rewdat.dat(atl.dat==roi_ids_rew(i)) = 1;
+        end
+        
+        roi_ids_dm = find(contains(labels.netName,'Default'));
+        
+        dmdat = atl; dmdat.dat(:,1) = 0;
+        
+        for i = 1:length(roi_ids_dm)
+            dmdat.dat(atl.dat==roi_ids_dm(i)) = 1;
+        end
+        
+        roi_ids_fp = find(contains(labels.netName,'FrontoParietal'));
+        
+        fpdat = atl; fpdat.dat(:,1) = 0;
+        
+        for i = 1:length(roi_ids_fp)
+            fpdat.dat(atl.dat==roi_ids_fp(i)) = 1;
+        end
+        if overwrite_networks == 1
+            cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices')
+            for i = 1:length(fnames)
+                fprintf(strcat('Working on:',fnames{i}(1:5),'\n'))
+                load(fnames{i});
+                if i==1
+                    if mid==1
+                        final_seitz_mat = seitz_mat;
+                    end
+                    if rest==1
+                        final_seitz_mat{i} = seitz_mat';
+                    end
+                else
+                    if mid==1
+                        final_seitz_mat(:,:,i) = seitz_mat;
+                    end
+                    if rest==1
+                        final_seitz_mat{i}(:,:) = seitz_mat';
+                    end
+                end
+            end
+            save /projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/seed_to_seed_results/seitzman_time_series.mat final_seitz_mat
+            cd('seed_to_seed_results')
+        else
+            load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/seed_to_seed_results/seitzman_time_series.mat')
+        end
+    
+        if rest == 1
+            for i = 1:length(final_seitz_mat)              
+                xsubs_corr_mat(:,:,i) = corr(final_seitz_mat{i}');
+            end
+        end
+        if mid == 1
+            for i = 1:length(final_seitz_mat)              
+                xsubs_corr_mat(:,:,i) = corr(final_seitz_mat(:,:,i)');
+            end
+        end
+
     end
 end
 
@@ -922,40 +991,4 @@ end
 % pull connections for unaligned data that contribute to relationship with
 % each ourcome
 
-if network_based_analyses == 1
-    atl = fmri_data('ROIs_300inVol_MNI.nii');
-    
-    labels = readtable('ROIs_300inVol_MNI_allInfo.txt');
-    
-    region_names = readtable("ROIs_anatomicalLabels.txt"); % 0=cortexMid,1=cortexL,2=cortexR,3=hippocampus,4=amygdala,5=basalGanglia,6=thalamus,7=cerebellum
-    
-    cerebellum_nodes = flip(find(region_names.x0_cortexMid==7));
-    for i = 1:length(cerebellum_nodes)
-        labels(cerebellum_nodes(i),:) = [];
-    end
-    
-    roi_ids_rew = find(contains(labels.netName,'Reward'));
-    rewdat = atl; rewdat.dat(:,1) = 0;
-    
-    for i = 1:length(roi_ids_rew)
-        rewdat.dat(atl.dat==roi_ids_rew(i)) = 1;
-    end
-    
-    roi_ids_dm = find(contains(labels.netName,'Default'));
-    
-    dmdat = atl; dmdat.dat(:,1) = 0;
-    
-    for i = 1:length(roi_ids_dm)
-        dmdat.dat(atl.dat==roi_ids_dm(i)) = 1;
-    end
-    
-    roi_ids_fp = find(contains(labels.netName,'FrontoParietal'));
-    
-    fpdat = atl; fpdat.dat(:,1) = 0;
-    
-    for i = 1:length(roi_ids_fp)
-        fpdat.dat(atl.dat==roi_ids_fp(i)) = 1;
-    end
 
-
-end

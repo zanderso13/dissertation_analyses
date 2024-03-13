@@ -92,6 +92,7 @@ end
 if doing_rest == 1
 
     atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
+    
     % atl = fmri_data('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/300ROIatlas/300_ROI_Set/ROIs_300inVol_MNI.nii');
     vs = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/VS_8mmsphere_Oldham_Rew.nii');
     ofc = fmri_data('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds/OFC_8mmsphere_Oldham.nii');
@@ -103,7 +104,6 @@ if doing_rest == 1
     cd(basedir)
     
     rest_fname = filenames(fullfile(strcat('sub-',num2str(pid),'*/ses-1/ssub*.nii')));
-
     dat = fmri_data(rest_fname{1});
     seitz = extract_roi_averages(dat, atl);
     vsdat = extract_roi_averages(dat, vs);
@@ -159,6 +159,6 @@ if doing_rest == 1
         "corr_amyg_wholebrain", "corr_acc_wholebrain","seitz_mat",...
         "corr_vs_voxel_to_region","corr_ofc_voxel_to_region","corr_acc_voxel_to_region",...
         "corr_amyg_voxel_to_region", "how_many_volumes")
-    
+        
 
 end
