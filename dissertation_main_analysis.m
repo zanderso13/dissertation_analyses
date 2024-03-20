@@ -2,11 +2,11 @@
 prep_behavioral_data = 1;
 
 % what task?
-mid = 1; rest = 0;
+mid = 0; rest = 1;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
-whole_brain_networks = 1; overwrite_nii = 1; 
+whole_brain_networks = 0; overwrite_nii = 0; 
 
 linear_seed_to_seed = 0; seeddir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
 mediation_seed_to_seed = 0; % linear seed to see must be on
@@ -17,15 +17,14 @@ moderated_mediation_networks = 0; % network based analyses must be on
 whole_brain_mediation_analysis = 0; 
 whole_brain_moderated_mediation = 0;
 
-hyper= 0; overwrite_hyper = 0; % hardcoded which seed you're looking at
+hyper= 1; % hardcoded which seed you're looking at
+important_to_change = 1; % table of contents. This is the outcome. Need to remove NaN from the outcome you want to analyze
 
-hyper_analyze = 0; remake_multivar_input = 0; do_pls_regress = 0; 
+hyper_analyze = 1; do_pls_regress = 1; 
 
-compare_aligned_pls_loadings = 0;
+hyper_analyze_transforms = 1; % visualize these pls results on transformations using the visualize_pls_results option
 
-look_at_multivariate_rotation_estimates = 0;
-
-mediate_with_pls_components = 0;
+visualize_pls_results = 0;
 
 
 if mid == 1
@@ -40,12 +39,22 @@ cd(basedir)
 
 fnames = filenames('*.mat');
 if mid==1   
-    load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusion.mat'));
+    temp = load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusion.mat'));
+    
+    % add exclusions for falling asleep, problems with scanner task, etc
+    extra_exclusions = {'10001';'10084';'10094';'10102';'10125';'10140';'10143';'10148';'10161';...
+        '10264';'10274';'10274';'10296';'10327';'10422';'10423';'10434';'10443';'10461';'10471';...
+        '20032';'20050';'20108';'20309';'20317';'20507';'20564';'20674';'21111';'21178';'21223';'21597'};
+    pid_exclude_list = [extra_exclusions;temp.pid_exclude_list(:,1)];
 end
-
-if rest==1
-    load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusions_rest.mat'))
-end
+% if you want to do 0.3 fd cutoff for rest, you can actually just comment the final motion exclusion file out 
+if rest==1   
+    temp = load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusions_rest.mat'));
+    % add exclusions for falling asleep, problems with scanner task, etc
+    extra_exclusions = {'10148';'10161';'10319';'10327';'10336';'20050';'20136';...
+        '20461';'20699';'20919';'21052';'21057';'21163';'21184';'21450';'21562';'10074'};
+    pid_exclude_list = [extra_exclusions;temp.pid_exclude_list(:,1)];
+end 
 
 % apply exclusions based on a >0.2mm FD MID or rest
 for exclude = 1:length(pid_exclude_list)
@@ -137,7 +146,7 @@ if prep_behavioral_data == 1
         % symptoms
         % if ~isempty(find(trilevel.PID==id{sub,1}))
         %     s(sub,1) = trilevel.T2gendis(find(trilevel.PID==id{sub,1}));
-        %     s(sub,2) = trilevel.T2anhedon(find(trilevel.PID==id{sub,1}));
+        %     s(sub,2) = trilevel.T2anhedon(find(trileveimportant_to_changel.PID==id{sub,1}));
         %     s(sub,3) = trilevel.T2fears(find(trilevel.PID==id{sub,1}));
         % else
         %     fprintf(strcat(num2str(id{sub,1}),': missing clinical data \n'))
@@ -192,7 +201,7 @@ end
 
 if whole_brain_networks == 1
     %% whole brain relationships between brain, inflammation and brain, symptoms
-    remove_missing_data = 0;
+    remove_missing_data = 1;
     % This will also be my sanity check about what networks are associated
     % with each of the seeds I've chosen to study. I need to output average
     % images for the subs still in the study (stored in fnames) and then
@@ -228,8 +237,8 @@ if whole_brain_networks == 1
     full_fnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
     final_brain = fmri_data(full_fnames);
     
-    final_brain.X = ones(length(full_fnames),1); 
-    %final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
+    %final_brain.X = ones(length(full_fnames),1); 
+    final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
     if remove_missing_data == 1
         % remove NaNs related to inflammation
         final_brain.dat(:, isnan(regressors.inflammation(:,1))) = [];
@@ -256,7 +265,7 @@ if whole_brain_networks == 1
         regressors(isnan(regressors.cti(:,1)),:) = [];
     end
     statobj = regress(final_brain);
-    threshobj = threshold(statobj.t,0.001,'unc','k',5);
+    threshobj = threshold(statobj.t,0.001,'unc','k',10);
     orthviews(select_one_image(threshobj,1))
     table(select_one_image(threshobj,1))
 %     thresh_obj = final_brain;
@@ -400,29 +409,46 @@ if linear_seed_to_seed == 1
         for i = 1:length(roi_ids_rew)
             rewdat.dat(atl.dat==roi_ids_rew(i)) = 1;
         end
+
+        roi_ids_co = find(contains(labels.netName,'CinguloOpercular'));
+        codat = atl; codat.dat(:,1) = 0;
+
+        for i = 1:length(roi_ids_co)
+            codat.dat(atl.dat==roi_ids_co(i)) = 1;
+        end
+        
+        for i = 1:length(roi_ids_rew)
+            rewdat.dat(atl.dat==roi_ids_rew(i)) = 1;
+        end
         
         roi_ids_dm = find(contains(labels.netName,'Default'));
         
         dmdat = atl; dmdat.dat(:,1) = 0;
+        dmdatall = atl; dmdatall.dat(:,1) = 0;
         
         for i = 1:length(roi_ids_dm)
             dmdat.dat(atl.dat==roi_ids_dm(i)) = 1;
+            dmdatall.dat(atl.dat==roi_ids_dm(i)) = roi_ids_dm(i);
         end
         
         roi_ids_fp = find(contains(labels.netName,'FrontoParietal'));
         
         fpdat = atl; fpdat.dat(:,1) = 0;
+        fpdatall = atl; fpdatall.dat(:,1) = 0;
         
         for i = 1:length(roi_ids_fp)
             fpdat.dat(atl.dat==roi_ids_fp(i)) = 1;
+            fpdatall.dat(atl.dat==roi_ids_fp(i)) = roi_ids_fp(i);
         end
 
         roi_ids_s = find(contains(labels.netName,'Salience'));
         
-        fpdat = atl; fpdat.dat(:,1) = 0;
+        saldat = atl; saldat.dat(:,1) = 0;
+        saldatall = atl; saldatall.dat(:,1) = 0;
         
         for i = 1:length(roi_ids_s)
             saldat.dat(atl.dat==roi_ids_s(i)) = 1;
+            saldatall.dat(atl.dat==roi_ids_s(i)) = roi_ids_s(i);
         end
 
         if overwrite_networks == 1
@@ -481,6 +507,10 @@ if linear_seed_to_seed == 1
             temprew = xsubs_corr_mat(roi_ids_rew,roi_ids_rew,i);
             temprew(temprew==1)=[];
             connrew(i,1) = mean(temprew);
+
+            tempco = xsubs_corr_mat(roi_ids_co,roi_ids_co,i);
+            tempco(tempco==1)=[];
+            connco(i,1) = mean(tempco);
             
             tempdmn = xsubs_corr_mat(roi_ids_dm,roi_ids_dm,i);
             tempdmn(tempdmn==1)=[];
@@ -500,9 +530,9 @@ if linear_seed_to_seed == 1
             connrewtodmn(i,1) = mean(temprewtodmn(:));
             
         end
-        networks_conn = [connrew,conndmn,connfpn,connsal,connrewtodmn];
+        networks_conn = [atanh(connrew),atanh(conndmn),atanh(connfpn),atanh(connsal),atanh(connrewtodmn),atanh(connco)];
         networks_conn = array2table(networks_conn);
-        networks_conn.Properties.VariableNames = {'Reward','DefaultMode','FrontoParietal','Salience','RewardtoDMN'};
+        networks_conn.Properties.VariableNames = {'Reward','DefaultMode','FrontoParietal','Salience','RewardtoDMN','CinguloOpercular'};
         
         alldata = [alldata,networks_conn];
 
@@ -511,13 +541,17 @@ if linear_seed_to_seed == 1
         mdlfpn = fitlm(alldata,'FrontoParietal  ~ inflammation + site + sex + meds + race + inc + ethnicity')
         mdlsal = fitlm(alldata,'Salience  ~ inflammation + site + sex + meds + race + inc + ethnicity')
         mdlrewdmn = fitlm(alldata,'RewardtoDMN  ~ inflammation + site + sex + meds + race + inc + ethnicity')
-        
+        mdlco = fitlm(alldata,'CinguloOpercular  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+
+        mdlmiddmn = fitlm(alldata,'GeneralDistress  ~ inflammation*DefaultMode + site + sex + meds + race + inc + ethnicity')
+        mdlrestfpn = fitlm(alldata,'GeneralDistress  ~ inflammation*FrontoParietal + site + sex + meds + race + inc + ethnicity')
+
         mdlrew2 = fitlm(alldata,'Reward  ~ longGeneralDistress + longAnhedonia + longFears + site + sex + meds + race + inc + ethnicity')
         mdldmn2 = fitlm(alldata,'DefaultMode  ~ longGeneralDistress + longAnhedonia + longFears + site + sex + meds + race + inc + ethnicity')
         mdlfpn2 = fitlm(alldata,'FrontoParietal  ~ longGeneralDistress + longAnhedonia + longFears + site + sex + meds + race + inc + ethnicity')
         mdlsal = fitlm(alldata,'Salience  ~ longGeneralDistress + longAnhedonia + longFears + site + sex + meds + race + inc + ethnicity')
         mdlrewdmn2 = fitlm(alldata,'RewardtoDMN  ~ longGeneralDistress + longAnhedonia + longFears + site + sex + meds + race + inc + ethnicity')
-  
+        mdlco2 = fitlm(alldata,'CinguloOpercular  ~ longGeneralDistress + longAnhedonia + longFears  + site + sex + meds + race + inc + ethnicity')
     end
 
     %% AIM 2
@@ -712,7 +746,7 @@ end
 %% hyperalignment 
 
 if hyper == 1
-     
+    check_networks = 0;
     % only one of these can be turned 'on' at a time. Composites should be
     % used when you're 1) trying to optimize speed or 2) want to get voxelwise
     % translation. Basically, this feeds hyperalignment matrices that yield a
@@ -734,21 +768,80 @@ if hyper == 1
     % is especially true if you're doing a pure random test, which will shuffle
     % subjects in all kinds of different orders.
     permutation_length = 100;
+    listofseeds = [246 247];
+    listoftargets = [244 245 ...
+            105 108 111 116 117 118 ...
+            102 110 122 204 206 208];
     
+    if check_networks == 1
+        atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
+        % vs seitz idx = 246 247
+        % amyg seitz idx = 244 245
+        % ofc seitz idx = 105 108 111 116 117 118
+        % acc seitz idx = 102 110 122 204 206 208
+        listofregions = [246 247 244 245 ...
+            105 108 111 116 117 118 ...
+            102 110 122 204 206 208];
+        hypatl = atl; hypatl.dat(:,1)=0;
+        hypatlall = atl; hypatlall.dat(:,1)=0;
+        for r = 1:length(listofregions)
+            hypatl.dat(atl.dat==listofregions(r)) = 1;
+            hypatlall.dat(atl.dat==listofregions(r)) = listofregions(r);
+        end
+    end
+    %% important to change!!
+    important_to_change = 1;
+    outcome = regressors.inflammation(:,1);
+    fnames(isnan(outcome))=[];
+
     for f = 1:length(fnames)
+
         load(fnames{f});
         % this will load three variables. corr_vs_to_wholebrain, hypmat,
         % temp_brain. the one you want for this set of analyses is hypmat
         % which will be a VS voxel x 300 ROI masked connectivity matrix.
         % Available variables are: final_corr_acc_voxel_to_region
         % final_corr_ofc_voxel_to_region final_corr_amyg_voxel_to_region
-        % final_corr_vs_voxel_to_region 
-        if mid == 1
-            unaligned_mats{f} = final_corr_vs_voxel_to_region;
-        end
+        % final_corr_vs_voxel_to_region. For rest, corr_vs_voxel_to_region
+        % and corresponding names for other seed regions. However, I'm
+        % going in a different direction. Above, I confirmed the Seitzman
+        % regions that correspond with all my regions of interest for this
+        % project. I'm going to do a VS voxel x all other voxel corr matrix
+        % in hyperalignment. This first round of hyperalignment will test
+        % the idea that inflammation does have specific effects on
+        % cortico-striatal-limbic connectivity, though it doesn't manifest
+        % as an average (measured by standard metrics) but rather results
+        % in subtle encoding differences at the voxel level. An alternative
+        % I may want to try will be a voxelxtime hyperalignment.
+        
         if rest == 1
-            unaligned_mats{f} = corr_vs_voxel_to_region;
+            seeds = [seitz(246).all_data';seitz(247).all_data'];
+            targets = [seitz(244).all_data';seitz(245).all_data';seitz(105).all_data';...
+                seitz(108).all_data';seitz(111).all_data';seitz(116).all_data';seitz(117).all_data';...
+                seitz(118).all_data';seitz(102).all_data';seitz(110).all_data';seitz(122).all_data';...
+                seitz(204).all_data';seitz(206).all_data';seitz(208).all_data'];
+            unaligned_mats{f} = corr(seeds',targets')';
         end
+        clear temp
+        if mid == 1
+            seeds = [[seitz(1,246).all_data',seitz(1,246).all_data'];[seitz(1,247).all_data',seitz(1,247).all_data']];
+            targets = [[seitz(1,244).all_data',seitz(2,244).all_data'];...
+                [seitz(1,245).all_data',seitz(2,245).all_data'];...
+                [seitz(1,105).all_data',seitz(2,105).all_data'];...
+                [seitz(1,108).all_data',seitz(2,108).all_data'];...
+                [seitz(1,111).all_data',seitz(2,111).all_data'];...
+                [seitz(1,116).all_data',seitz(2,116).all_data'];...
+                [seitz(1,117).all_data',seitz(2,117).all_data'];...
+                [seitz(1,118).all_data',seitz(2,118).all_data'];...
+                [seitz(1,102).all_data',seitz(2,102).all_data'];...
+                [seitz(1,110).all_data',seitz(2,110).all_data'];...
+                [seitz(1,122).all_data',seitz(2,122).all_data'];...
+                [seitz(1,204).all_data',seitz(2,204).all_data'];...
+                [seitz(1,206).all_data',seitz(2,206).all_data'];...
+                [seitz(1,208).all_data',seitz(2,208).all_data']];
+            unaligned_mats{f} = corr(seeds',targets')';
+        end
+
     end
     unaligned_mats2 = unaligned_mats;
     
@@ -766,10 +859,11 @@ if hyper == 1
         
             transforms_resorted=transforms(sidx);    
             aligned_data_resorted=aligned_data(sidx);
+            
         end
         fprintf(strcat('Im on permutation: ',num2str(perm),'\n'))
-        curr_filename1 = fullfile(basedir,'/hyperalignment_results/',strcat('amyg_data_perm_',num2str(perm),'.mat'));
-        curr_filename2 = fullfile(basedir,'/hyperalignment_results/',strcat('amyg_transforms_perm_',num2str(perm),'.mat'));
+        curr_filename1 = fullfile(basedir,'/hyperalignment_results/',strcat('vs_data_perm_',num2str(perm),'.mat'));
+        curr_filename2 = fullfile(basedir,'/hyperalignment_results/',strcat('vs_transforms_perm_',num2str(perm),'.mat'));
         save(curr_filename1, 'aligned_data_resorted', 'unaligned_mats');
         save(curr_filename2,'transforms_resorted', '-v7.3')
         % this bit calculates and stores composite values       
@@ -787,331 +881,292 @@ if hyper_analyze == 1
     
     % need to combine across 100 permutations
     analyze_fnames = filenames(fullfile(strcat(region_name_for_wholebrain_analysis,'_data_perm*')));
-    
+
     % this takes a long time. I'm going to save each roi's version of this
     % output so I can simply load it in when I want to relate new variables
     % to previously processed brain data. I'm going to save the output in a
     % shortcuts/ folder in hyperalignment results
-    if remake_multivar_input == 1
-        for i = 1:100
-            load(analyze_fnames{i})
-            for sub = 1:length(aligned_data_resorted)
-                if i == 1
-                    final_aligned_data.(strcat('perm',num2str(i)))(:,sub) = aligned_data_resorted{sub}(:);
-                    final_unaligned_data(:,sub) = unaligned_mats{sub}(:);
-                else                
-                    final_aligned_data(:,sub).(strcat('perm',num2str(i))) = aligned_data_resorted{sub}(:);
-                end
-            end
-        end
-    else
-        fname = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/shortcuts/',strcat(region_name_for_wholebrain_analysis,'*')));
-        load(fname{1});
-    end
-    keyboard
     if do_pls_regress == 1
 
         % easier to define an outcome here which will then be plugged in
         % throughout the document
+        important_to_change = 1;
         outcome = regressors.inflammation(:,1);
-
-        % remove NaNs related to outcome
-        final_unaligned_data(:, isnan(outcome(:,1))) = [];
-        for i = 1:100
-            final_aligned_data.(strcat('perm',num2str(i)))(:, isnan(outcome(:,1))) = [];
-        end
-        outcome(isnan(outcome(:,1))) = [];    
-
-
-        % saving this code in case I want to pivot back to plsregression
-        [uXL,uYL,uXS,uYS,uBETA,uPCTVAR,uMSE,~] = plsregress(final_unaligned_data',outcome,10,'CV',10);
-
-        for i=1:length(aligned_data_resorted)
-            aligned_x = final_aligned_data.(strcat('perm',num2str(i)))(:,:);
+        outcome(isnan(outcome))=[];
+       
+        for perm = 1:100
+            load(analyze_fnames{perm})
+            for sub = 1:length(aligned_data_resorted)
+                final_aligned_data(:,sub) = aligned_data_resorted{sub}(:);
+                final_unaligned_data(:,sub) = unaligned_mats{sub}(:); 
+            end
+            
             fprintf(strcat('Im on permutation: ',num2str(perm),'\n'))
-            [aXL{perm},aYL{perm},aXS{perm},aYS{perm},aBETA{perm},aPCTVAR{perm},aMSE{perm},~] = plsregress(aligned_x',outcome,10,'CV',10);    
-            clear aligned_x unaligned_x            
+            [aXL{perm},aYL{perm},aXS{perm},aYS{perm},aBETA{perm},aPCTVAR{perm},aMSE{perm},~] = plsregress(final_aligned_data',outcome,10,'CV',10);    
+            clear final_aligned_data  
+        end   
+
+        for sub = 1:length(aligned_data_resorted)
+            final_unaligned_data(:,sub) = unaligned_mats{sub}(:); 
         end
 
-        for i = 1:length(aMSE)
-            aMSEall(i,:) = aMSE{i}(2,:);
-            aPCTVARall(i,:) = aPCTVAR{i}(2,:);
+        [uXL,uYL,uXS,uYS,uBETA,uPCTVAR,uMSE,~] = plsregress(final_unaligned_data',outcome,10,'CV',10);
+        % generate null distribution
+        for i=1:100
+            idx = randperm(size(outcome,1));
+            fprintf(strcat('Im on permutation: ',num2str(i),'\n'))
+            null_outcome = outcome(idx);
+            [dXL{i},dYL{i},dXS{i},dYS{i},dBETA{i},dPCTVAR{i},dMSE{i},~] = plsregress(final_unaligned_data',null_outcome,10,'CV',10);                   
         end
-        finalMSEa = mean(mean(aMSEall),2);
-        finalMSEu = mean(uMSE(2,:));
-        avgPVEa = mean(aPCTVARall);
         
-        load in atlas to highlight regions connected with VS in each of the
-        above components
-        
-
-        figure(); plot(1:length(uYL),cumsum(100*avgPVEa),'-bo');
-        title('Aligned data')
-        xlabel('Number of PLS components');
-        ylabel('Percent Variance Explained in inflammation');
-
-        figure(); plot(1:length(uYL),cumsum(100*uPCTVAR(2,:)),'-bo');
-        title('Unaligned data')
-        xlabel('Number of PLS components');
-        ylabel('Percent Variance Explained in inflammation');
+        cd('shortcuts')
+        save null_dist_model_results.mat dXL dYL dXS dYS dBETA dPCTVAR dMSE
+        save aligned_dist_model_results.mat aXL aYL aXS aYS aBETA aPCTVAR aMSE
+        save unaligned_dist_model_results.mat uXL uYL uXS uYS uBETA uPCTVAR uMSE
+       
     end
-    for perm = 1:length(transforms_resorted)
-        for sub = 1:length(transforms_resorted{1})
+end
+
+if hyper_analyze_transforms == 1
+    if mid == 1
+        transform_files = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/*transforms*.mat'));
+    end
+    if rest == 1
+        transform_files = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/hyperalignment_results/*transforms*.mat'));
+    end
+
+    important_to_change = 1;
+    outcome = regressors.inflammation(:,1);
+    outcome(isnan(outcome))=[];
+
+    for perm = 1:length(transform_files)
+        load(transform_files{perm})
+        fprintf(strcat('Im doing perm: ', num2str(perm),'\n'))
+        for sub = 1:length(transforms_resorted)
+
+            % total magnitude combine rotation and translation
+            totmagnitude_mat(:,:,sub) = transforms_resorted{sub}.T' * transforms_resorted{sub}.c';
+            totmagnitude_temp = (transforms_resorted{sub}.T' * transforms_resorted{sub}.c').^2;
+            %totmagnitude_temp = (transforms_resorted{sub}.c * transforms_resorted{sub}.T).^2;
+            totmagnitude_comp(sub,1,perm) = sum(totmagnitude_temp(:));
+            totmagnitude_pls(sub,:,perm) = zscore(totmagnitude_temp(:));
+
             % magnitude of translation (distance metric)
             
-            all_translation(sub,:,perm) = (sum((transforms_resorted{perm}{sub}.c.^2),2)).^0.5;      
-            % magnitude of rotation (distance metric)
+            all_translation(sub,:,perm) = (sum((transforms_resorted{sub}.c.^2),2)).^0.5;     
+
+            % voxelwise rotation (distance metric)
+           
+            all_rotation_mat(sub,:,perm) = zscore(mean(transforms_resorted{sub}.T.^2,2));
+            % run model on voxelwise rotation
             
-            all_rotation(sub,:,perm) = (sum(abs(transforms_resorted{perm}{sub}.T),2));
+
             % magnitude of scaling (single value)
-            all_scale(sub,perm) = transforms_resorted{perm}{sub}.b;
+            all_scale(sub,perm) = transforms_resorted{sub}.b;
             
             % determinant of rotation matrix (were data rotated with
             % reflection (det(T) = -1, or not?
-            all_reflection(sub,perm) = det(transforms_resorted{perm}{sub}.T);          
-        end
-    end
-    % analyze transformation matrices. first total translation and rotation
-    sub_total_translation = mean(zscore(mean(all_translation,3)),2);
-    sub_total_rotation = mean(zscore(mean(all_rotation,3)),2);
-    sub_total_scale = zscore(mean(all_scale,2));
-    hyper_mdl_inputs = [sub_total_translation,sub_total_rotation,sub_total_scale];
-    hyper_mdl_inputs = array2table(hyper_mdl_inputs); hyper_mdl_inputs.Properties.VariableNames = {'translation','rotation','scale'};
-    mdl_input = [regressors,hyper_mdl_inputs];
+            all_reflection(sub,perm) = det(transforms_resorted{sub}.T);
 
+            
+        end
+        X = totmagnitude_pls(:,:,perm);
+        
+        [transformXL{perm},transformYL{perm},transformXS{perm},transformYS{perm},transformBETA{perm},transformPCTVAR{perm},transformMSE{perm},~] = plsregress(X,outcome,10,'CV',10);    
+        clear X  
+        
+        
+    end
+    
+    % analyze transformation matrices. first total translation and rotation
+    mdl_input = regressors;
+    mdl_input(isnan(mdl_input.inflammation),:)=[];
+    
+    
+    hyper_mdl_inputs = zscore([mean(all_translation(:,1),3),mean(all_scale(:,:),2),sum(all_reflection(:,:),2),mean(totmagnitude_comp,3)]);
+    hyper_mdl_inputs = array2table(hyper_mdl_inputs); hyper_mdl_inputs.Properties.VariableNames = {'translation','scale','reflection','transrot'};
+    mdl_input = [mdl_input,hyper_mdl_inputs];
+    
     mdl_inf_trans = fitlm(mdl_input,'inflammation ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_inf_rot = fitlm(mdl_input,'inflammation ~ rotation + race + ethnicity + sex + meds + inc + site');
     mdl_inf_scale = fitlm(mdl_input,'inflammation ~ scale + race + ethnicity + sex + meds + inc + site');
+    mdl_inf_transrot = fitlm(mdl_input,'inflammation ~ transrot + race + ethnicity + sex + meds + inc + site');
 
     mdl_gd_trans = fitlm(mdl_input,'GeneralDistress ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_gd_rot = fitlm(mdl_input,'GeneralDistress ~ rotation + race + ethnicity + sex + meds + inc + site');
     mdl_gd_scale = fitlm(mdl_input,'GeneralDistress ~ scale + race + ethnicity + sex + meds + inc + site');
+    mdl_gd_scale = fitlm(mdl_input,'GeneralDistress ~ transrot + race + ethnicity + sex + meds + inc + site');    
 
     mdl_anh_trans = fitlm(mdl_input,'Anhedonia ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_anh_rot = fitlm(mdl_input,'Anhedonia ~ rotation + race + ethnicity + sex + meds + inc + site');
     mdl_anh_scale = fitlm(mdl_input,'Anhedonia ~ scale + race + ethnicity + sex + meds + inc + site');
+    mdl_anh_ref = fitlm(mdl_input,'Anhedonia ~ transrot + race + ethnicity + sex + meds + inc + site');
 
     mdl_fear_trans = fitlm(mdl_input,'Fears ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_fear_rot = fitlm(mdl_input,'Fears ~ rotation + race + ethnicity + sex + meds + inc + site');
     mdl_fear_scale = fitlm(mdl_input,'Fears ~ scale + race + ethnicity + sex + meds + inc + site');
+    mdl_fear_ref = fitlm(mdl_input,'Fears ~ transrot + race + ethnicity + sex + meds + inc + site');
 
     mdl_lgd_trans = fitlm(mdl_input,'longGeneralDistress ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_lgd_rot = fitlm(mdl_input,'longGeneralDistress ~ rotation + race + ethnicity + sex + meds + inc + site');
     mdl_lgd_scale = fitlm(mdl_input,'longGeneralDistress ~ scale + race + ethnicity + sex + meds + inc + site');
+    mdl_lgd_ref = fitlm(mdl_input,'longGeneralDistress ~ transrot + race + ethnicity + sex + meds + inc + site');
 
     mdl_lanh_trans = fitlm(mdl_input,'longAnhedonia ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_lanh_rot = fitlm(mdl_input,'longAnhedonia ~ rotation + race + ethnicity + sex + meds + inc + site');
     mdl_lanh_scale = fitlm(mdl_input,'longAnhedonia ~ scale + race + ethnicity + sex + meds + inc + site');
+    mdl_lanh_ref = fitlm(mdl_input,'longAnhedonia ~ transrot + race + ethnicity + sex + meds + inc + site');
 
     mdl_lfear_trans = fitlm(mdl_input,'longFears ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_lfear_rot = fitlm(mdl_input,'longFears ~ rotation + race + ethnicity + sex + meds + inc + site');
     mdl_lfear_scale = fitlm(mdl_input,'longFears ~ scale + race + ethnicity + sex + meds + inc + site');
+    mdl_lfear_ref = fitlm(mdl_input,'longFears ~ transrot + race + ethnicity + sex + meds + inc + site');
+    
+    
+    atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
+    % vs seitz idx = 246 247
+    % amyg seitz idx = 244 245
+    % ofc seitz idx = 105 108 111 116 117 118
+    % acc seitz idx = 102 110 122 204 206 208
+    listofregions = [244 245 ...
+        105 108 111 116 117 118 ...
+        102 110 122 204 206 208];
+    hypatl = atl; hypatl.dat(:,1)=0;
+    hypatlall = atl; hypatlall.dat(:,1)=0;
+    for r = 1:length(listofregions)
+        hypatl.dat(atl.dat==listofregions(r)) = 1;
+        hypatlall.dat(atl.dat==listofregions(r)) = listofregions(r);
+    end
+    
+    
+
+%     for perm = 1:100
+%         
+%         X = all_rotation_mat(:,:,perm);
+%         
+%         fprintf(strcat('Im on permutation: ',num2str(perm),'\n'))
+%         [transformXL{perm},transformYL{perm},transformXS{perm},transformYS{perm},transformBETA{perm},transformPCTVAR{perm},transformMSE{perm},~] = plsregress(X,outcome,10,'CV',10);    
+%         clear X  
+%     end
+%     
+    if mid == 1
+        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/shortcuts')
+    end
+    if rest == 1
+        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/hyperalignment_results/shortcuts')
+    end
+%     
+    
+    save transforms_predict_model_results.mat transformXL transformYL transformXS transformYS transformBETA transformPCTVAR transformMSE totmagnitude_mat
+%     % connection wise test
+%     count = 1;
+%     significant_connections = zeros(size(totmagnitude_mat,1),size(totmagnitude_mat,2));
+%     for i = 1:size(totmagnitude_mat,1)
+%         %percent_complete = count/(size(totmagnitude_mat,1)*size(totmagnitude_mat,2));
+% 
+%         fprintf(strcat('Percentage done: ', num2str((count/58000)*100),'\n'))
+% 
+%         for j = 1:size(totmagnitude_mat,2)
+%             
+%                         
+%             tempmdl = fitlm([mdl_input.inflammation],zscore(reshape(totmagnitude_mat(i,j,:),[size(totmagnitude_mat,3),1])));
+%     
+%             trans_pvalues(i,j) = tempmdl.Coefficients.pValue(2);
+%             count = count + 1;
+%     
+%             
+%         end
+%     end
 
 end
 
-if compare_aligned_pls_loadings == 1
-    cd('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/beta_series/final_matrices/anticipation_combined_runs_with_hyp/hyperalignment_results')
-    load('predict_hyperalignment_composite_perm.mat')
-    load('group_level_regressors.mat')
-
-    % the goal of this section will be to generate some quick similar
-    % matrices of the feature loadings with respect to inflammation and all
-    % 3 symptoms. The goal is to identify features (VS-wholebrain
-    % connections) that appear relatively specific to each 
-    inflam = load('predict_inflammation_hyperalignment_model_results.mat');
-    gd = load('predict_gd_hyperalignment_model_results.mat');
-    anhed = load('predict_anh_hyperalignment_model_results.mat');
-    fears = load('predict_fears_hyperalignment_model_results.mat');
-    for sub = 1:134
-        for perm = 1:100
-            if perm < 2
-                loadings_inflam(:,:) = reshape(inflam.aXL{perm}(:,1),[300,514]);
-                loadings_gd(:,:) = reshape(gd.aXL{perm}(:,1),[300,514]);
-                loadings_anhed(:,:) = reshape(anhed.aXL{perm}(:,1),[300,514]);
-                loadings_fears(:,:) = reshape(fears.aXL{perm}(:,1),[300,514]);
-                % rotate loadings back into brain space
-                
-                rotated_c1_inflam(:,:,sub) = transforms_resorted{perm}{sub}.T(:,:)' * loadings_inflam(:,:);
-                rotated_c1_gd(:,:,sub) = transforms_resorted{perm}{sub}.T(:,:)' * loadings_gd(:,:);
-                rotated_c1_anhed(:,:,sub) = transforms_resorted{perm}{sub}.T(:,:)' * loadings_anhed(:,:);
-                rotated_c1_fears(:,:,sub) = transforms_resorted{perm}{sub}.T(:,:)' * loadings_fears(:,:);
-            else
-                loadings_inflam(:,:) = reshape(inflam.aXL{perm}(:,1),[300,514]);
-                loadings_gd(:,:) = reshape(gd.aXL{perm}(:,1),[300,514]);
-                loadings_anhed(:,:) = reshape(anhed.aXL{perm}(:,1),[300,514]);
-                loadings_fears(:,:) = reshape(fears.aXL{perm}(:,1),[300,514]);
-                % rotate loadings back into brain space
-                rotated_c1_inflam(:,:,sub) = (rotated_c1_inflam(:,:,sub) + transforms_resorted{perm}{sub}.T(:,:)' * loadings_inflam(:,:))./2;
-                rotated_c1_gd(:,:,sub) = (rotated_c1_gd(:,:,sub) + transforms_resorted{perm}{sub}.T(:,:)' * loadings_gd(:,:))./2;
-                rotated_c1_anhed(:,:,sub) = (rotated_c1_anhed(:,:,sub) + transforms_resorted{perm}{sub}.T(:,:)' * loadings_anhed(:,:))./2;
-                rotated_c1_fears(:,:,sub) = (rotated_c1_fears(:,:,sub) + transforms_resorted{perm}{sub}.T(:,:)' * loadings_fears(:,:))./2;
-            end
-        end
+if visualize_pls_results == 1
+    if mid == 1
+        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/shortcuts')
     end
-        
+    if rest == 1
+        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/hyperalignment_results/shortcuts')
+    end
+    load aligned_dist_model_results.mat
+    load unaligned_dist_model_results.mat
+    load null_dist_model_results.mat
+    load transforms_predict_model_results.mat
 
-    total_rotated_c1_inflam = zscore(mean(sum(sqrt(sum(rotated_c1_inflam.^2,3)),2),3));
-    total_rotated_c1_gd = zscore(mean(sum(sqrt(sum(rotated_c1_gd.^2,3)),2),3));
-    total_rotated_c1_anhed = zscore(mean(sum(sqrt(sum(rotated_c1_anhed.^2,3)),2),3));
-    total_rotated_c1_fears = zscore(mean(sum(sqrt(sum(rotated_c1_fears.^2,3)),2),3)); 
+    for i = 1:100
+        allMSE(i,1) = aMSE{i}(2,1);
+        allMSE(i,2) = uMSE(2,1);
+        allMSE(i,3) = dMSE{i}(2,1);
+        allMSE(i,4) = transformMSE{i}(2,1);
 
-    atl = fmri_data('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/300ROIatlas/300_ROI_Set/ROIs_300inVol_MNI.nii');
+        % first component that I will try to analyze
+        allPCT(i,1) = aPCTVAR{i}(2,1);
+        allPCT(i,3) = dPCTVAR{i}(2,1);
+        allPCT(i,2) = uPCTVAR(2,1);
+        allPCT(i,4) = transformPCTVAR{i}(2,1);
 
-    brain_connections_inflam = atl;
-    brain_connections_gd = atl;
-    brain_connections_anhed = atl;
-    brain_connections_fears = atl;
+        % all coverage
+        totPCT(i,:,1) = aPCTVAR{i}(2,:);
+        totPCT(i,:,3) = dPCTVAR{i}(2,:);
+        totPCT(i,:,2) = uPCTVAR(2,:);
+        totPCT(i,:,4) = transformPCTVAR{i}(2,:);
 
-    for r = 1:length(total_rotated_c1_inflam)
-        brain_connections_inflam.dat(atl.dat==r) = total_rotated_c1_inflam(r);
-        brain_connections_gd.dat(atl.dat==r) = total_rotated_c1_gd(r);
-        brain_connections_anhed.dat(atl.dat==r) = total_rotated_c1_anhed(r);
-        brain_connections_fears.dat(atl.dat==r) = total_rotated_c1_fears(r);
+        loadings_to_visualize(:,:,i) = reshape(transformXL{i}(:,1),[828,71]);
     end
 
-    % pseudo thresholded brains: top 2.5% of connections
+    % visualize MSE
+    % no differences in MSE. Distributions look super similar
+    figure(); histogram(allMSE(:,1)); hold on; histogram(allMSE(:,3)); hold on; xline(allMSE(1,2)); hold on; histogram(allMSE(:,4));
+    figure(); histogram(allMSE(:,1)); hold on; xline(allMSE(1,2)); hold on; histogram(allMSE(:,4));
+    p_aligned_pls_mse = sum(allMSE(:,1)>allMSE(1,2))./100; % 
+    p_transforms_pls_mse = sum(allMSE(:,4)>allMSE(1,2))./100;
 
-    brain_connections_inflam.dat(brain_connections_inflam.dat<2) = 0;
-    brain_connections_gd.dat(brain_connections_gd.dat<2) = 0;
-    brain_connections_anhed.dat(brain_connections_anhed.dat<2) = 0;
-    brain_connections_fears.dat(brain_connections_fears.dat<2) = 0;
-    
-    r_brain_connections_inflam = region(brain_connections_inflam);
-    r_brain_connections_gd = region(brain_connections_gd);
-    r_brain_connections_anhed = region(brain_connections_anhed);
-    r_brain_connections_fears = region(brain_connections_fears); 
+    % visualize pct variance covered
+    % unaligned data is no better than the null dist. Aligned data is WAY
+    % better than both in terms of percent variance accounted for
+    figure(); histogram(allPCT(:,1)); hold on; histogram(allPCT(:,3)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4));
+    figure(); histogram(allPCT(:,1)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4));
+    p_aligned_pls_pct = sum(allPCT(:,1)<allPCT(1,2))./100; % p < 0.01
+    p_transform_pls_pct = sum(allPCT(:,4)<allPCT(1,2))./100; % p < 0.01
+
+    % visualize pls loadings of first component that accounts for 50-90% of
+    % the variance in inflammation
+    final_pls_loadings = mean(loadings_to_visualize,3);
+    load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/10001_final_ant.mat')
+    idx_amyg = size(seitz(1,244).all_data,2) + size(seitz(1,245).all_data,2);
+    idx_ofc = size(seitz(1,105).all_data,2) + size(seitz(1,108).all_data,2) + size(seitz(1,111).all_data,2) + size(seitz(1,116).all_data,2) + size(seitz(1,117).all_data,2) + size(seitz(1,118).all_data,2);
+    idx_acc = size(seitz(1,102).all_data,2) + size(seitz(1,110).all_data,2) + size(seitz(1,122).all_data,2) + size(seitz(1,204).all_data,2) + size(seitz(1,206).all_data,2) + size(seitz(1,208).all_data,2);
+
+    figure(); heatmap(sum(final_pls_loadings,2)')
+    figure(); heatmap(zscore(sum(final_pls_loadings,2)'))
+
+    % vs seitz idx = 246 247
+    % amyg seitz idx = 244 245
+    % ofc seitz idx = 105 108 111 116 117 118
+    % acc seitz idx = 102 110 122 204 206 208
     
 
-end
+    idx_amyg = size(seitz(1,244).all_data,2) + size(seitz(1,245).all_data,2);
+    idx_ofc = size(seitz(1,105).all_data,2) + size(seitz(1,108).all_data,2) + size(seitz(1,111).all_data,2) + size(seitz(1,116).all_data,2) + size(seitz(1,117).all_data,2) + size(seitz(1,118).all_data,2);
+    idx_acc = size(seitz(1,102).all_data,2) + size(seitz(1,110).all_data,2) + size(seitz(1,122).all_data,2) + size(seitz(1,204).all_data,2) + size(seitz(1,206).all_data,2) + size(seitz(1,208).all_data,2);
 
-if look_at_multivariate_rotation_estimates == 1
-    cd('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/beta_series/final_matrices/anticipation_combined_runs_with_hyp/hyperalignment_results')
-    load('predict_hyperalignment_composite_perm.mat')
-    load('group_level_regressors.mat')
-    atl = fmri_data('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/300ROIatlas/300_ROI_Set/ROIs_300inVol_MNI.nii');
+    atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
+    % vs seitz idx = 246 247
+    % amyg seitz idx = 244 245
+    % ofc seitz idx = 105 108 111 116 117 118
+    % acc seitz idx = 102 110 122 204 206 208
+    listofregions = [244 245 ...
+        105 108 111 116 117 118 ...
+        102 110 122 204 206 208];
+    namesofregions = {'amyg1' 'amyg2' 'ofc1' 'ofc2' 'ofc3' 'ofc4' 'ofc5' 'ofc6' 'acc1' 'acc2' 'acc3' 'acc4' 'acc5' 'acc6'};
+    hypatl = atl; hypatl.dat(:,1)=0;
+    
+    sum_final_pls_loadings = sum(final_pls_loadings,2);
 
-    for perm = 1:length(transforms_resorted)
-        if perm == 1
-            for sub = 1:length(transforms_resorted{1})
-                final_rots(sub,:) = sum(abs(transforms_resorted{perm}{sub}.T(:,:)),2);
-                final_trans(sub,:) = sum(abs(transforms_resorted{perm}{sub}.c(:,:)),1);
-            end
-        else
-            for sub = 1:length(transforms_resorted{perm})
-                final_rots(sub,:) = sum(abs(transforms_resorted{perm}{sub}.T(:,:)),2);
-                final_trans(sub,:) = sum(abs(transforms_resorted{perm}{sub}.c(:,:)),1)';
-            end
-        end
+    starting_idx = 1;
+    for r = 1:length(listofregions)
+        avg_pls(r) = mean(sum_final_pls_loadings(starting_idx:starting_idx+size(seitz(1,listofregions(r)-1).all_data,2)));
+        hypatl.dat(atl.dat==listofregions(r)) = avg_pls(r);
+        starting_idx = starting_idx + size(seitz(1,listofregions(r)).all_data,2);
     end
     
-    final_rots = zscore(final_rots);
-    final_trans = zscore(final_trans);
-
-    % series of models to test for differences in translation or rotation
-    % that relate to inflammation
-
-    for r = 1:size(final_rots,2)
-        rot_temp = fitlm([regressors.inflammation,regressors.sex,regressors.site,regressors.inc, regressors.meds,...
-            regressors.race,regressors.ethnicity],final_rots(:,r));
-        tran_temp = fitlm([regressors.inflammation,regressors.sex,regressors.site,regressors.inc, regressors.meds,...
-            regressors.race,regressors.ethnicity],final_trans(:,r));
-        rot_beta(r,1) = rot_temp.Coefficients.tStat(2);
-        tran_beta(r,1) = tran_temp.Coefficients.tStat(2);
-        rot_p(r,1) = rot_temp.Coefficients.pValue(2);
-        tran_p(r,1) = tran_temp.Coefficients.pValue(2);
-    end
-
-    % fdr correct images using Benjamini & Hochberg 2005
-    [~,tidx] = sort(tran_p(:,1),'ascend');
-    sorted_translation = tran_p(tidx,1);
-    [~,t2idx]=sort(tidx);
-
-    [~,ridx] = sort(rot_p(:,1),'ascend');
-    sorted_rotation = rot_p(ridx,:);
-    [~,r2idx]=sort(ridx);
-    
-
-    % FDR<0.1 correction
-    for rank = 1:length(tran_p)
-       fdr_p(rank,1) = (rank/300) * (0.1);
-    end
- 
-    sorted_translation = [sorted_translation,fdr_p];
-    sorted_rotation = [sorted_rotation,fdr_p];
-
-    translation_maps_final = sorted_translation(t2idx,:);
-    rotation_maps_final = sorted_rotation(r2idx,:);
-    
-    % changing this to be a 0.001 uncorrected threshold
-    sig_tran = find(translation_maps_final(:,1)<0.001);%translation_maps_final(:,2));
-    sig_rot = find(rotation_maps_final(:,1)<0.001);%rotation_maps_final(:,2));
-
-    sig_rot_brain = atl; sig_rot_brain.dat = zeros(length(sig_rot_brain.dat),1);
-    sig_tran_brain = atl; sig_tran_brain.dat = zeros(length(sig_tran_brain.dat),1);
-
-    for r = 1:length(sig_rot)
-        sig_rot_brain.dat(atl.dat==sig_rot(r)) = rot_beta(sig_rot(r));
-    end
-    for r = 1:length(sig_tran)
-        sig_tran_brain.dat(atl.dat==sig_tran(r)) = rot_beta(sig_tran(r));
-    end
-    % inflammation: reduced rotation insula (60) and heightened rotation dlpfc (124)
-    % long general distress: nothing
-    % long anhedonia: heightened translation frontal inferior triangularis (146),
-    % heightened translation middle occipital (218)
-    % long fears: nothing
-    % intercept general distress:nothing
-    % intercept anhedonia: reduced inferior parietal (220)
+    avg_z_table = avg_pls; avg_z_table=array2table(avg_z_table);
+    avg_z_table.Properties.VariableNames = namesofregions;
 
 end
 
 
-if mediate_with_pls_components == 1
-    load('predict_inflammation_hyperalignment_model_results.mat')
-    load('group_level_regressors.mat')
-    % you should do mediation with one and two levels of mediators. This
-    % will include the first two components extracted that appear to
-    % account for quite a bit more of the variance in in inflammation
-    for perm = 1:length(aXL)
-        % generate average loadings
-        m1(:,perm) = aXS{perm}(:,1);
-        m2(:,perm) = aXS{perm}(:,2);
-        m3(:,perm) = aXS{perm}(:,3);
-    end
-    m1 = mean(m1,2);
-    m2 = mean(m2,2);
-    m3 = mean(m3,2);
-
-    m1u = uXS(:,1);
-    m2u = uXS(:,2);
-    m3u = uXS(:,3);
-    
-    
-    % use factor scores in mediation model
-    [paths, stats2] = mediation(regressors.inflammation, regressors.longAnhedonia, m1, 'plots', 'verbose', 'names', {'inflammation' 'long. Anhedonia' 'VS component 1'},'covs',[regressors.meds,regressors.sex,regressors.site,regressors.race,regressors.ethnicity,regressors.inc]);
-   
-
-    additional_reg = [m1,m2,m3]; additional_reg = array2table(additional_reg);
-    additional_reg.Properties.VariableNames = {'Component1','Component2','Component3'};
-
-    regressors = [regressors,additional_reg];
-    fitlm(regressors,'Anhedonia ~ Component1 + sex + site + meds + race + ethnicity + inc') % significant relationship with Anhedonia
-    fitlm(regressors,'GeneralDistress ~ Component1 + sex + site + meds + race + ethnicity + inc')
-    fitlm(regressors,'Fears ~ Component1 + sex + site + meds + race + ethnicity + inc')
-
-    fitlm(regressors,'Anhedonia ~ Component2 + sex + site + meds + race + ethnicity + inc') 
-    fitlm(regressors,'GeneralDistress ~ Component2 + sex + site + meds + race + ethnicity + inc')
-    fitlm(regressors,'Fears ~ Component2 + sex + site + meds + race + ethnicity + inc')
-
-    fitlm(regressors,'Anhedonia ~ Component3 + sex + site + meds + race + ethnicity + inc') 
-    fitlm(regressors,'GeneralDistress ~ Component3 + sex + site + meds + race + ethnicity + inc')
-    fitlm(regressors,'Fears ~ Component3 + sex + site + meds + race + ethnicity + inc')
-end
-% to do
-% brain mediation with factor loadings per voxel. use mediation_brain
-
-
-% pull connections for unaligned data that contribute to relationship with
-% each ourcome
 
 
