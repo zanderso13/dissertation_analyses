@@ -2,7 +2,7 @@
 prep_behavioral_data = 1;
 
 % what task?
-mid = 0; rest = 1;
+mid = 1; rest = 0;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
@@ -17,14 +17,15 @@ moderated_mediation_networks = 0; % network based analyses must be on
 whole_brain_mediation_analysis = 0; 
 whole_brain_moderated_mediation = 0;
 
-hyper= 1; % hardcoded which seed you're looking at
+hyper= 0; % hardcoded which seed you're looking at
 important_to_change = 1; % table of contents. This is the outcome. Need to remove NaN from the outcome you want to analyze
 
 hyper_analyze = 1; do_pls_regress = 1; 
 
 hyper_analyze_transforms = 1; % visualize these pls results on transformations using the visualize_pls_results option
+mediation_with_hyp_transform = 1;
 
-visualize_pls_results = 0;
+visualize_pls_results = 1;
 
 
 if mid == 1
@@ -791,7 +792,7 @@ if hyper == 1
     end
     %% important to change!!
     important_to_change = 1;
-    outcome = regressors.inflammation(:,1);
+    outcome = regressors.longGeneralDistress(:,1);
     fnames(isnan(outcome))=[];
 
     for f = 1:length(fnames)
@@ -891,7 +892,7 @@ if hyper_analyze == 1
         % easier to define an outcome here which will then be plugged in
         % throughout the document
         important_to_change = 1;
-        outcome = regressors.inflammation(:,1);
+        outcome = regressors.longGeneralDistress(:,1);
         outcome(isnan(outcome))=[];
        
         for perm = 1:100
@@ -936,7 +937,9 @@ if hyper_analyze_transforms == 1
     end
 
     important_to_change = 1;
-    outcome = regressors.inflammation(:,1);
+    outcome = regressors.longGeneralDistress(:,1);
+    symptom = regressors.longGeneralDistress(:,1);
+    symptom(isnan(outcome))=[];
     outcome(isnan(outcome))=[];
 
     for perm = 1:length(transform_files)
@@ -974,8 +977,7 @@ if hyper_analyze_transforms == 1
         
         [transformXL{perm},transformYL{perm},transformXS{perm},transformYS{perm},transformBETA{perm},transformPCTVAR{perm},transformMSE{perm},~] = plsregress(X,outcome,10,'CV',10);    
         clear X  
-        
-        
+       
     end
     
     % analyze transformation matrices. first total translation and rotation
@@ -1051,6 +1053,8 @@ if hyper_analyze_transforms == 1
 %     
     
     save transforms_predict_model_results.mat transformXL transformYL transformXS transformYS transformBETA transformPCTVAR transformMSE totmagnitude_mat
+
+    
 %     % connection wise test
 %     count = 1;
 %     significant_connections = zeros(size(totmagnitude_mat,1),size(totmagnitude_mat,2));
@@ -1116,8 +1120,9 @@ if visualize_pls_results == 1
     % visualize pct variance covered
     % unaligned data is no better than the null dist. Aligned data is WAY
     % better than both in terms of percent variance accounted for
-    figure(); histogram(allPCT(:,1)); hold on; histogram(allPCT(:,3)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4));
-    figure(); histogram(allPCT(:,1)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4));
+    pctall = figure(); histogram(allPCT(:,1)); hold on; histogram(allPCT(:,3)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4));
+    pcthyp = figure(); histogram(allPCT(:,1)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4));
+    savefig(pctall,'pctall.fig'); savefig(pcthyp,'pct_hyperalignment.fig');
     p_aligned_pls_pct = sum(allPCT(:,1)<allPCT(1,2))./100; % p < 0.01
     p_transform_pls_pct = sum(allPCT(:,4)<allPCT(1,2))./100; % p < 0.01
 
@@ -1162,8 +1167,11 @@ if visualize_pls_results == 1
         starting_idx = starting_idx + size(seitz(1,listofregions(r)).all_data,2);
     end
     
+    hypatl.mean         
     avg_z_table = avg_pls; avg_z_table=array2table(avg_z_table);
     avg_z_table.Properties.VariableNames = namesofregions;
+     
+    
 
 end
 
