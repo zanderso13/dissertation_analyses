@@ -2,7 +2,7 @@
 prep_behavioral_data = 1;
 
 % what task?
-mid = 1; rest = 0;
+mid = 0; rest = 1;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
@@ -17,16 +17,16 @@ moderated_mediation_networks = 0; % network based analyses must be on
 whole_brain_mediation_analysis = 0; 
 whole_brain_moderated_mediation = 0;
 
-hyper= 0; % hardcoded which seed you're looking at
+hyper= 1; % hardcoded which seed you're looking at
 important_to_change = 1; % table of contents. This is the outcome. Need to remove NaN from the outcome you want to analyze
 
-hyper_analyze = 0; do_pls_regress = 0; 
+hyper_analyze = 1; do_pls_regress = 1; 
 
 hyper_analyze_transforms = 1; % visualize these pls results on transformations using the visualize_pls_results option
-mediation_with_hyp_transform = 1;
 
-visualize_pls_results = 1;
+visualize_pls_results = 0;
 
+mediation_with_hyp_transform = 0;
 
 if mid == 1
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats';
@@ -40,21 +40,37 @@ cd(basedir)
 
 fnames = filenames('*.mat');
 if mid==1   
-    temp = load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusion.mat'));
+    motion_exclude_temp = load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusion.mat'));
     
     % add exclusions for falling asleep, problems with scanner task, etc
-    extra_exclusions = {'10001';'10084';'10094';'10102';'10125';'10140';'10143';'10148';'10161';...
-        '10264';'10274';'10274';'10296';'10327';'10422';'10423';'10434';'10443';'10461';'10471';...
-        '20032';'20050';'20108';'20309';'20317';'20507';'20564';'20674';'21111';'21178';'21223';'21597'};
-    pid_exclude_list = [extra_exclusions;temp.pid_exclude_list(:,1)];
+    admin_problems = {'10029','10319','10323','20025','20150','10230','10002','21057','21463'}; % incomplete scans, no timing files, asleep
+    preprocessing_quality = {'10341','10247','10461','21025','20133','20309','20507','21046','21163','21675','20133','20309'}; % scan artificats, bad grayplots
+    anatomical_quality = {'10141','20235','21417','21463'}; 
+    exclude_winnings = {'10001','10094','10102','10125','10140','10423','10443','10461','10471','20032','20108','20564','20674','21111','21223'};
+    temp_tot_list = [admin_problems,preprocessing_quality,anatomical_quality,exclude_winnings];
+    
+    for i = 1:length(temp_tot_list)
+        motion_exclude_temp.pid_exclude_list(contains(motion_exclude_temp.pid_exclude_list(:,1),temp_tot_list{i}),:)=[];
+    end
+    
+    pid_exclude_list = [temp_tot_list';motion_exclude_temp.pid_exclude_list(:,1)];
 end
 % if you want to do 0.3 fd cutoff for rest, you can actually just comment the final motion exclusion file out 
 if rest==1   
-    temp = load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusions_rest.mat'));
+    motion_exclude_temp = load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusions_rest.mat'));
     % add exclusions for falling asleep, problems with scanner task, etc
-    extra_exclusions = {'10148';'10161';'10319';'10327';'10336';'20050';'20136';...
-        '20461';'20699';'20919';'21052';'21057';'21163';'21184';'21450';'21562';'10074'};
-    pid_exclude_list = [extra_exclusions;temp.pid_exclude_list(:,1)];
+    admin_problems = {'10004','21052','21163','21184'}; % incomplete scans, no timing files, asleep
+    preprocessing_quality = {'10001','10002','10006','10008','10010','10034','10041','10059',...
+        '10088','10090','10135','10272','10341','10422','20085','20123','20309','20464','21025',...
+        '21463'}; % scan artificats, bad grayplots, field of view
+    anatomical_quality = {'10141','20235','21417','21463'}; 
+    temp_tot_list = [admin_problems,preprocessing_quality,anatomical_quality];
+    
+    for i = 1:length(temp_tot_list)
+        motion_exclude_temp.pid_exclude_list(contains(motion_exclude_temp.pid_exclude_list(:,1),temp_tot_list{i}),:)=[];
+    end
+    
+    pid_exclude_list = [temp_tot_list';motion_exclude_temp.pid_exclude_list(:,1)];
 end 
 
 % apply exclusions based on a >0.2mm FD MID or rest
@@ -239,7 +255,7 @@ if whole_brain_networks == 1
     final_brain = fmri_data(full_fnames);
     
     %final_brain.X = ones(length(full_fnames),1); 
-    final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
+    final_brain.X = [regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
     if remove_missing_data == 1
         % remove NaNs related to inflammation
         final_brain.dat(:, isnan(regressors.inflammation(:,1))) = [];
@@ -291,15 +307,35 @@ if linear_seed_to_seed == 1
     end
     
     cd('seed_to_seed_results/')
-    amyg = fmri_data(filenames(fullfile(seeddir,'*Amygdala*')));
-    vs = fmri_data(filenames(fullfile(seeddir,'VS*Rew.nii')));
-    acc = fmri_data(filenames(fullfile(seeddir,'*ACC.nii')));
-    ofc = fmri_data(filenames(fullfile(seeddir,'OFC*.nii')));
+    % old set of masks that come from too many different sources
+%     amyg = fmri_data(filenames(fullfile(seeddir,'*Amygdala*')));
+%     vs = fmri_data(filenames(fullfile(seeddir,'VS*Rew.nii')));
+%     acc = fmri_data(filenames(fullfile(seeddir,'*ACC.nii')));
+%     ofc = fmri_data(filenames(fullfile(seeddir,'OFC*.nii')));
+
+    % generate new masks for each target region
+    atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
+    
+    % vs seitz idx = 246 247
+    % amyg seitz idx = 244 245
+    % ofc seitz idx = 105 111 116 117 118
+    % acc seitz idx = 102 110 108 122 204 206 208
+    
+    vs = atl; vs.dat(vs.dat>0) = 0; vs.dat(atl.dat==246)=1; vs.dat(atl.dat==247)=1;
+
+    amyg = atl; amyg.dat(amyg.dat>0) = 0; amyg.dat(atl.dat==244)=1; amyg.dat(atl.dat==245)=1;
+
+    ofc = atl; ofc.dat(ofc.dat>0) = 0; ofc.dat(atl.dat==105)=1; ofc.dat(atl.dat==111)=1;
+    ofc.dat(atl.dat==116)=1; ofc.dat(atl.dat==117)=1; ofc.dat(atl.dat==118)=1;
+
+    acc = atl; acc.dat(acc.dat>0) = 0; acc.dat(atl.dat==102)=1; acc.dat(atl.dat==110)=1; ofc.dat(atl.dat==108)=1;
+    acc.dat(atl.dat==122)=1; acc.dat(atl.dat==204)=1; acc.dat(atl.dat==206)=1; acc.dat(atl.dat==208)=1;
+
     % apply masks to data
     amyg_data = extract_roi_averages(final_brain,amyg);
-    vs_data = extract_roi_averages(final_brain,vs);
     ofc_data = extract_roi_averages(final_brain,ofc);
     acc_data = extract_roi_averages(final_brain,acc);
+    vs_data = extract_roi_averages(final_brain,vs);
 
     seed2seed = array2table([amyg_data.dat,vs_data.dat,ofc_data.dat,acc_data.dat]); 
     seed2seed.Properties.VariableNames = {'amygdala','vs','ofc','acc'};
@@ -778,11 +814,11 @@ if hyper == 1
         atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
         % vs seitz idx = 246 247
         % amyg seitz idx = 244 245
-        % ofc seitz idx = 105 108 111 116 117 118
-        % acc seitz idx = 102 110 122 204 206 208
+        % ofc seitz idx = 105 111 116 117 118
+        % acc seitz idx = 102 110 108 122 204 206 208
         listofregions = [246 247 244 245 ...
-            105 108 111 116 117 118 ...
-            102 110 122 204 206 208];
+            105 111 116 117 118 ...
+            102 108 110 122 204 206 208];
         hypatl = atl; hypatl.dat(:,1)=0;
         hypatlall = atl; hypatlall.dat(:,1)=0;
         for r = 1:length(listofregions)
@@ -792,8 +828,10 @@ if hyper == 1
     end
     %% important to change!!
     important_to_change = 1;
-    outcome = regressors.longGeneralDistress(:,1);
-    fnames(isnan(outcome))=[];
+    outcome = regressors.inflammation(:,1);
+    symptom = regressors.longGeneralDistress(:,1);
+    symptom(isnan(regressors.inflammation))=[];
+    fnames(isnan(regressors.inflammation))=[];
 
     for f = 1:length(fnames)
 
@@ -818,8 +856,8 @@ if hyper == 1
         if rest == 1
             seeds = [seitz(246).all_data';seitz(247).all_data'];
             targets = [seitz(244).all_data';seitz(245).all_data';seitz(105).all_data';...
-                seitz(108).all_data';seitz(111).all_data';seitz(116).all_data';seitz(117).all_data';...
-                seitz(118).all_data';seitz(102).all_data';seitz(110).all_data';seitz(122).all_data';...
+                seitz(111).all_data';seitz(116).all_data';seitz(117).all_data';...
+                seitz(118).all_data';seitz(102).all_data';seitz(108).all_data';seitz(110).all_data';seitz(122).all_data';...
                 seitz(204).all_data';seitz(206).all_data';seitz(208).all_data'];
             unaligned_mats{f} = corr(seeds',targets')';
         end
@@ -829,12 +867,12 @@ if hyper == 1
             targets = [[seitz(1,244).all_data',seitz(2,244).all_data'];...
                 [seitz(1,245).all_data',seitz(2,245).all_data'];...
                 [seitz(1,105).all_data',seitz(2,105).all_data'];...
-                [seitz(1,108).all_data',seitz(2,108).all_data'];...
                 [seitz(1,111).all_data',seitz(2,111).all_data'];...
                 [seitz(1,116).all_data',seitz(2,116).all_data'];...
                 [seitz(1,117).all_data',seitz(2,117).all_data'];...
                 [seitz(1,118).all_data',seitz(2,118).all_data'];...
                 [seitz(1,102).all_data',seitz(2,102).all_data'];...
+                [seitz(1,108).all_data',seitz(2,108).all_data'];...
                 [seitz(1,110).all_data',seitz(2,110).all_data'];...
                 [seitz(1,122).all_data',seitz(2,122).all_data'];...
                 [seitz(1,204).all_data',seitz(2,204).all_data'];...
@@ -892,8 +930,10 @@ if hyper_analyze == 1
         % easier to define an outcome here which will then be plugged in
         % throughout the document
         important_to_change = 1;
-        outcome = regressors.longGeneralDistress(:,1);
-        outcome(isnan(outcome))=[];
+        outcome = regressors.longAnhedonia(:,1);
+        symptom = regressors.longGeneralDistress(:,1);
+        symptom(isnan(regressors.inflammation))=[];
+        outcome(isnan(regressors.inflammation))=[];
        
         for perm = 1:100
             load(analyze_fnames{perm})
@@ -937,10 +977,10 @@ if hyper_analyze_transforms == 1
     end
 
     important_to_change = 1;
-    outcome = regressors.longGeneralDistress(:,1);
+    outcome = regressors.longAnhedonia(:,1);
     symptom = regressors.longGeneralDistress(:,1);
-    symptom(isnan(outcome))=[];
-    outcome(isnan(outcome))=[];
+    symptom(isnan(regressors.inflammation))=[];
+    outcome(isnan(regressors.inflammation))=[];
 
     for perm = 1:length(transform_files)
         load(transform_files{perm})
@@ -949,6 +989,7 @@ if hyper_analyze_transforms == 1
 
             % total magnitude combine rotation and translation
             totmagnitude_mat(:,:,sub) = transforms_resorted{sub}.T' * transforms_resorted{sub}.c';
+            totmagnitude_clust(sub,:,:) = transforms_resorted{sub}.T' * transforms_resorted{sub}.c';
             totmagnitude_temp = (transforms_resorted{sub}.T' * transforms_resorted{sub}.c').^2;
             %totmagnitude_temp = (transforms_resorted{sub}.c * transforms_resorted{sub}.T).^2;
             totmagnitude_comp(sub,1,perm) = sum(totmagnitude_temp(:));
@@ -977,7 +1018,9 @@ if hyper_analyze_transforms == 1
         
         [transformXL{perm},transformYL{perm},transformXS{perm},transformYS{perm},transformBETA{perm},transformPCTVAR{perm},transformMSE{perm},~] = plsregress(X,outcome,10,'CV',10);    
         clear X  
-       
+        
+        tempfname = strcat('data_for_transform_mediation_and_cluster_perm',num2str(perm),'.mat');
+        save(fullfile(basedir,tempfname),"totmagnitude_clust")
     end
     
     % analyze transformation matrices. first total translation and rotation
@@ -1017,21 +1060,6 @@ if hyper_analyze_transforms == 1
     mdl_lfear_scale = fitlm(mdl_input,'longFears ~ scale + race + ethnicity + sex + meds + inc + site');
     mdl_lfear_ref = fitlm(mdl_input,'longFears ~ transrot + race + ethnicity + sex + meds + inc + site');
     
-    
-    atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
-    % vs seitz idx = 246 247
-    % amyg seitz idx = 244 245
-    % ofc seitz idx = 105 108 111 116 117 118
-    % acc seitz idx = 102 110 122 204 206 208
-    listofregions = [244 245 ...
-        105 108 111 116 117 118 ...
-        102 110 122 204 206 208];
-    hypatl = atl; hypatl.dat(:,1)=0;
-    hypatlall = atl; hypatlall.dat(:,1)=0;
-    for r = 1:length(listofregions)
-        hypatl.dat(atl.dat==listofregions(r)) = 1;
-        hypatlall.dat(atl.dat==listofregions(r)) = listofregions(r);
-    end
     
     
 
@@ -1139,23 +1167,23 @@ if visualize_pls_results == 1
 
     % vs seitz idx = 246 247
     % amyg seitz idx = 244 245
-    % ofc seitz idx = 105 108 111 116 117 118
-    % acc seitz idx = 102 110 122 204 206 208
+    % ofc seitz idx = 105 111 116 117 118
+    % acc seitz idx = 102 108 110 122 204 206 208
     
 
     idx_amyg = size(seitz(1,244).all_data,2) + size(seitz(1,245).all_data,2);
-    idx_ofc = size(seitz(1,105).all_data,2) + size(seitz(1,108).all_data,2) + size(seitz(1,111).all_data,2) + size(seitz(1,116).all_data,2) + size(seitz(1,117).all_data,2) + size(seitz(1,118).all_data,2);
-    idx_acc = size(seitz(1,102).all_data,2) + size(seitz(1,110).all_data,2) + size(seitz(1,122).all_data,2) + size(seitz(1,204).all_data,2) + size(seitz(1,206).all_data,2) + size(seitz(1,208).all_data,2);
+    idx_ofc = size(seitz(1,105).all_data,2) + size(seitz(1,111).all_data,2) + size(seitz(1,116).all_data,2) + size(seitz(1,117).all_data,2) + size(seitz(1,118).all_data,2);
+    idx_acc = size(seitz(1,102).all_data,2) + size(seitz(1,108).all_data,2) + size(seitz(1,110).all_data,2) + size(seitz(1,122).all_data,2) + size(seitz(1,204).all_data,2) + size(seitz(1,206).all_data,2) + size(seitz(1,208).all_data,2);
 
     atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
     % vs seitz idx = 246 247
     % amyg seitz idx = 244 245
-    % ofc seitz idx = 105 108 111 116 117 118
-    % acc seitz idx = 102 110 122 204 206 208
+    % ofc seitz idx = 105 111 116 117 118
+    % acc seitz idx = 102 108 110 122 204 206 208
     listofregions = [244 245 ...
-        105 108 111 116 117 118 ...
-        102 110 122 204 206 208];
-    namesofregions = {'amyg1' 'amyg2' 'ofc1' 'ofc2' 'ofc3' 'ofc4' 'ofc5' 'ofc6' 'acc1' 'acc2' 'acc3' 'acc4' 'acc5' 'acc6'};
+        105 111 116 117 118 ...
+        102 108 110 122 204 206 208];
+    namesofregions = {'amyg1' 'amyg2' 'ofc1' 'ofc2' 'ofc3' 'ofc4' 'ofc5' 'acc1' 'acc2' 'acc3' 'acc4' 'acc5' 'acc6' 'acc7'};
     hypatl = atl; hypatl.dat(:,1)=0;
     
     sum_final_pls_loadings = sum(final_pls_loadings,2);
@@ -1171,10 +1199,76 @@ if visualize_pls_results == 1
     avg_z_table = avg_pls; avg_z_table=array2table(avg_z_table);
     avg_z_table.Properties.VariableNames = namesofregions;
      
-    
+    save avg_z_and_brain.mat avg_z_table hypatl
 
 end
 
+if mediation_with_hyp_transform == 1
+    cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/mediation_and_clustering_data')
+    load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/10001_final_ant.mat')
+    med_fnames = filenames(fullfile('data*mat'));
+    
+    atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
+    
+    important_to_change = 1;
+    outcome = regressors.inflammation(:,1);
+    symptom_long= regressors.longAnhedonia(:,1);
+    symptom_long(isnan(regressors.inflammation))=[];
+    symptom = regressors.Anhedonia(:,1);
+    symptom(isnan(regressors.inflammation))=[];
+    outcome(isnan(regressors.inflammation))=[];
+    regressors(isnan(regressors.inflammation),:)=[];
+
+    for perm = 1:length(med_fnames)
+        load(med_fnames{perm});
+        listofregions = [244 245 ...
+        105 111 116 117 118 ...
+        102 108 110 122 204 206 208];
+        namesofregions = {'amyg1' 'amyg2' 'ofc1' 'ofc2' 'ofc3' 'ofc4' 'ofc5' 'acc1' 'acc2' 'acc3' 'acc4' 'acc5' 'acc6' 'acc7'};
+        hypatl = atl; hypatl.dat(:,1)=0;
+                
+        starting_idx = 1;
+        for r = 1:length(listofregions)
+            
+            current_data_temp{r} = mean(totmagnitude_clust(:,starting_idx:starting_idx+size(seitz(1,listofregions(r)).all_data,2)-1,:),3);
+            starting_idx = starting_idx + size(seitz(1,listofregions(r)).all_data,2);
+            
+        end       
+        totmagnitude_final(:,:,perm) = mean(totmagnitude_clust,3);
+        bilateral_amyg(:,perm) = (mean(current_data_temp{1},2) + mean(current_data_temp{2},2))./2;
+        bilateral_ofc(:,perm) = (mean(current_data_temp{3},2) +...
+            mean(current_data_temp{4},2)+...
+            mean(current_data_temp{5},2)+...
+            mean(current_data_temp{6},2)+...
+            mean(current_data_temp{7},2)...
+            )./6;
+        bilateral_acc(:,perm) = (mean(current_data_temp{8},2) +...
+            mean(current_data_temp{9},2)+...
+            mean(current_data_temp{10},2)+...
+            mean(current_data_temp{11},2)+...
+            mean(current_data_temp{12},2)+...
+            mean(current_data_temp{13},2)+...
+            mean(current_data_temp{14},2)...
+            )./6;
+       
+    end
+    results_amyg = mediation(outcome, symptom_long, zscore(mean(bilateral_amyg,2)),'M',symptom,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+    results_ofc = mediation(outcome, symptom_long, zscore(mean(bilateral_ofc,2)),'M',symptom,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+    results_acc = mediation(outcome, symptom_long, zscore(mean(bilateral_acc,2)),'M',symptom,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+
+    [idx,C,sumd,D] = kmeans(zscore(mean(totmagnitude_final,3)),4);
+    [idxclin,Cclin,sumdclin,Dclin] = kmeans([regressors.longGeneralDistress,regressors.longAnhedonia,regressors.longFears],4);
+
+    idx1 = zeros(size(idx));idx1(idx==1)=1;
+    idx2 = zeros(size(idx));idx2(idx==2)=1;
+    idx3 = zeros(size(idx));idx3(idx==3)=1;
+    idx4 = zeros(size(idx));idx4(idx==4)=1;
 
 
+    [tbl,chi2,p,labels] = crosstab(idx,idxclin)
+
+    clust_mdl = fitlm([idx,regressors.site,regressors.sex,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc],regressors.longGeneralDistress)
+    clust_mdl2 = fitlm(idx,regressors.longGeneralDistress)
+    
+end
 

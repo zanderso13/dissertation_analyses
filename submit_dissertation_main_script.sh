@@ -5,5 +5,5 @@
 #SBATCH -t 08:00:00
 #SBATCH --mem=30G
 
-matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath('/home/zaz3744/repo')); dissertation_main_analysis; quit"
+matlab -nodisplay -nosplash -nodesktop -r "addpath(genpath('/home/zaz3744/repo')); dissertation_main_analysis_to_submit; quit"
 
