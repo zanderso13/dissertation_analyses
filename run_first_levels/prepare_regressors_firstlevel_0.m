@@ -45,9 +45,9 @@ end
 if prep_confounds == 1
     confounddir = '/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/copy_fmriprep_confound';
     
-    fnames = filenames('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/copy_fmriprep_confound/*rest*run-1*txt');
+    fnames = filenames('/Users/zacharyanderson/Documents/ACNlab/BrainMAPD/copy_fmriprep_confound/*mid*run-2*txt');
     
-    ex1 =1; 
+    ex1 =10; 
     ndummies = 2;
     for files = 1:length(fnames)
         T = readtable(fnames{files});
@@ -63,14 +63,14 @@ if prep_confounds == 1
         csf = T.csf;
         wm = T.white_matter;
         fd(files) = nanmean(T.framewise_displacement);
-    
+        keyboard
         R = [transx,transy,transz,rotx,roty,rotz,gsr,outliers];
         R(isnan(R)) = 0;
         R = R(ndummies+1:size(R,1),:);
     
-        if nanmean(T.framewise_displacement) > 0.25 
+        if nanmean(T.framewise_displacement) > 0.3
             pid_exclude_list{ex1,1} = pid;
-            pid_exclude_list{ex1,2} = 'rest_run1';
+            pid_exclude_list{ex1,2} = 'mid_run2';
             ex1 = ex1 + 1;
         end
         
