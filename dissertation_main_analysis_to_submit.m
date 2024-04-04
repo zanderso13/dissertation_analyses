@@ -2,7 +2,7 @@
 prep_behavioral_data = 1;
 
 % what task?
-mid = 0; rest = 1;
+mid = 1; rest = 0;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
