@@ -131,10 +131,4 @@ In addpath (line 86)]
 21675: missing immune data 
 Im planning to do this many permutations:100
 Im on permutation:1
-Im on permutation:2
-Im on permutation:3
-Im on permutation:4
-Im on permutation:5
-Im on permutation:6
-Im on permutation:7
-slurmstepd: error: *** JOB 6580098 ON qnode0552 CANCELLED AT 2024-04-03T10:15:07 ***
+slurmstepd: error: *** JOB 6662520 ON qnode0640 CANCELLED AT 2024-04-04T16:47:37 ***

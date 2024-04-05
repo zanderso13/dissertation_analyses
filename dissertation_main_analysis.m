@@ -2,7 +2,7 @@
 prep_behavioral_data = 1;
 
 % what task?
-mid = 0; rest = 1;
+mid = 1; rest = 0;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
@@ -17,10 +17,10 @@ moderated_mediation_networks = 0; % network based analyses must be on
 whole_brain_mediation_analysis = 0; 
 whole_brain_moderated_mediation = 0;
 
-hyper= 0; % hardcoded which seed you're looking at
+hyper= 1; % hardcoded which seed you're looking at
 important_to_change = 1; % table of contents. This is the outcome. Need to remove NaN from the outcome you want to analyze
 
-hyper_analyze = 1; do_pls_regress = 1; 
+hyper_analyze = 0; do_pls_regress = 0; 
 
 hyper_analyze_transforms = 1; % visualize these pls results on transformations using the visualize_pls_results option
 
@@ -820,10 +820,7 @@ if hyper == 1
         end
     end
     %% important to change!!
-    important_to_change = 1;
-    outcome = regressors.longGeneralDistress(:,1);
-    symptom = regressors.longGeneralDistress(:,1);
-    symptom(isnan(regressors.inflammation))=[];
+    
     fnames(isnan(regressors.inflammation))=[];
 
     for f = 1:length(fnames)
@@ -852,7 +849,7 @@ if hyper == 1
                 seitz(111).all_data';seitz(116).all_data';seitz(117).all_data';...
                 seitz(118).all_data';seitz(102).all_data';seitz(108).all_data';seitz(110).all_data';seitz(122).all_data';...
                 seitz(204).all_data';seitz(206).all_data';seitz(208).all_data'];
-            unaligned_mats{f} = corr(seeds',targets')';
+            unaligned_mats{f} = atanh(corr(seeds',targets')');
         end
         clear temp
         if mid == 1
@@ -871,7 +868,7 @@ if hyper == 1
                 [seitz(1,204).all_data',seitz(2,204).all_data'];...
                 [seitz(1,206).all_data',seitz(2,206).all_data'];...
                 [seitz(1,208).all_data',seitz(2,208).all_data']];
-            unaligned_mats{f} = corr(seeds',targets')';
+            unaligned_mats{f} = atanh(corr(seeds',targets')');
         end
 
     end
@@ -1154,7 +1151,7 @@ if visualize_pls_results == 1
     % better than both in terms of percent variance accounted for
     % pctall = figure(); histogram(allPCT(:,1)); hold on; histogram(allPCT(:,3)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4)); hold on; histogram(allPCT(:,5));
     pctall = figure(); histogram(allPCT(:,1)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4)); 
-    savefig(pctall,'pctall.fig'); savefig(pcthyp,'pct_hyperalignment.fig');
+    %savefig(pctall,'pctall.fig'); savefig(pctall,'pct_hyperalignment.fig');
     p_aligned_pls_pct = sum(allPCT(:,1)<allPCT(1,2))./100; % p < 0.01
     p_transform_pls_pct = sum(allPCT(:,4)<allPCT(1,2))./100; % p < 0.01
 

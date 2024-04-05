@@ -537,6 +537,6 @@ Error in LinearModel.fit (line 1035)
 Error in fitlm (line 121)
 model = LinearModel.fit(X,varargin{:});
 
-Error in dissertation_main_analysis_to_submit (line 1035)
+Error in dissertation_main_analysis_inflammation_mid (line 1030)
     mdl_inf_trans = fitlm(mdl_input,'inflammation ~ translation + race + ethnicity + sex + meds + inc + site');
 } 

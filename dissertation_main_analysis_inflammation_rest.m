@@ -2,7 +2,7 @@
 prep_behavioral_data = 1;
 
 % what task?
-mid = 1; rest = 0;
+mid = 0; rest = 1;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
@@ -17,7 +17,7 @@ moderated_mediation_networks = 0; % network based analyses must be on
 whole_brain_mediation_analysis = 0; 
 whole_brain_moderated_mediation = 0;
 
-hyper= 1; % hardcoded which seed you're looking at
+hyper= 0; % hardcoded which seed you're looking at
 important_to_change = 1; % table of contents. This is the outcome. Need to remove NaN from the outcome you want to analyze
 
 hyper_analyze = 1; do_pls_regress = 1; 
@@ -255,7 +255,7 @@ if whole_brain_networks == 1
     final_brain = fmri_data(full_fnames);
     
     %final_brain.X = ones(length(full_fnames),1); 
-    final_brain.X = [regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
+    final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
     if remove_missing_data == 1
         % remove NaNs related to inflammation
         final_brain.dat(:, isnan(regressors.inflammation(:,1))) = [];
@@ -320,8 +320,8 @@ if linear_seed_to_seed == 1
     % amyg seitz idx = 244 245
     % ofc seitz idx = 105 111 116 117 118
     % acc seitz idx = 102 110 108 122 204 206 208
-    
-    vs = atl; vs.dat(vs.dat>0) = 0; vs.dat(atl.dat==246)=1; vs.dat(atl.dat==247)=1;
+
+    vs = atl; vs.dat(vs.dat>0) = 0; vs.dat(atl.dat==244)=1; vs.dat(atl.dat==245)=1;
 
     amyg = atl; amyg.dat(amyg.dat>0) = 0; amyg.dat(atl.dat==244)=1; amyg.dat(atl.dat==245)=1;
 
@@ -374,9 +374,9 @@ if linear_seed_to_seed == 1
         mdlacc = fitlm(alldata,'acc  ~ inflammation + site + sex + meds + race + inc + ethnicity')
         mdlvs = fitlm(alldata,'vs  ~ inflammation + site + sex + meds + race + inc + ethnicity')
     elseif strcmp(region_name_for_wholebrain_analysis,'vs')
-        mdlamyg = fitlm(alldata,'amygdala  ~ inflammation + site + sex + race + inc + ethnicity')
-        mdlacc = fitlm(alldata,'acc  ~ inflammation + site + sex + meds + race + inc + ethnicity')
-        mdlofc = fitlm(alldata,'ofc  ~ inflammation + site + sex + meds + race + inc + ethnicity')
+        mdlamyg = fitlm(alldata,'amygdala  ~ inflammation*cti + site + sex + race + inc + ethnicity')
+        mdlacc = fitlm(alldata,'acc  ~ inflammation*cti + site + sex + meds + race + inc + ethnicity')
+        mdlofc = fitlm(alldata,'ofc  ~ inflammation*cti + site + sex + meds + race + inc + ethnicity')
     elseif strcmp(region_name_for_wholebrain_analysis,'amyg')
         mdlvs = fitlm(alldata,'vs  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
         mdlacc = fitlm(alldata,'acc  ~ longGeneralDistress + site + sex + meds + race + inc + ethnicity')
@@ -657,9 +657,6 @@ if whole_brain_mediation_analysis == 1
     remove_missing_data = 1;
     full_fnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
 
-    if mid == 1
-        full_fnames(185) = [];
-    end
     
     if remove_missing_data == 1
         % remove NaNs related to inflammation
@@ -717,10 +714,6 @@ end
 if whole_brain_moderated_mediation == 1
     remove_missing_data = 1;
     full_fnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
-
-    if mid == 1
-        full_fnames(185) = [];
-    end
     
     if remove_missing_data == 1
         % remove NaNs related to inflammation
@@ -827,10 +820,7 @@ if hyper == 1
         end
     end
     %% important to change!!
-    important_to_change = 1;
-    outcome = regressors.inflammation(:,1);
-    symptom = regressors.longGeneralDistress(:,1);
-    symptom(isnan(regressors.inflammation))=[];
+    
     fnames(isnan(regressors.inflammation))=[];
 
     for f = 1:length(fnames)
@@ -859,7 +849,7 @@ if hyper == 1
                 seitz(111).all_data';seitz(116).all_data';seitz(117).all_data';...
                 seitz(118).all_data';seitz(102).all_data';seitz(108).all_data';seitz(110).all_data';seitz(122).all_data';...
                 seitz(204).all_data';seitz(206).all_data';seitz(208).all_data'];
-            unaligned_mats{f} = corr(seeds',targets')';
+            unaligned_mats{f} = atanh(corr(seeds',targets')');
         end
         clear temp
         if mid == 1
@@ -878,7 +868,7 @@ if hyper == 1
                 [seitz(1,204).all_data',seitz(2,204).all_data'];...
                 [seitz(1,206).all_data',seitz(2,206).all_data'];...
                 [seitz(1,208).all_data',seitz(2,208).all_data']];
-            unaligned_mats{f} = corr(seeds',targets')';
+            unaligned_mats{f} = atanh(corr(seeds',targets')');
         end
 
     end
@@ -930,7 +920,7 @@ if hyper_analyze == 1
         % easier to define an outcome here which will then be plugged in
         % throughout the document
         important_to_change = 1;
-        outcome = regressors.longAnhedonia(:,1);
+        outcome = regressors.longGeneralDistress(:,1);
         symptom = regressors.longGeneralDistress(:,1);
         symptom(isnan(regressors.inflammation))=[];
         outcome(isnan(regressors.inflammation))=[];
@@ -977,7 +967,7 @@ if hyper_analyze_transforms == 1
     end
 
     important_to_change = 1;
-    outcome = regressors.longAnhedonia(:,1);
+    outcome = regressors.longGeneralDistress(:,1);
     symptom = regressors.longGeneralDistress(:,1);
     symptom(isnan(regressors.inflammation))=[];
     outcome(isnan(regressors.inflammation))=[];
@@ -1017,10 +1007,15 @@ if hyper_analyze_transforms == 1
         X = totmagnitude_pls(:,:,perm);
         
         [transformXL{perm},transformYL{perm},transformXS{perm},transformYS{perm},transformBETA{perm},transformPCTVAR{perm},transformMSE{perm},~] = plsregress(X,outcome,10,'CV',10);    
+        
+        idx = randperm(size(X,1));
+        null_X = X(idx,:);
+        [dtXL{perm},dtYL{perm},dtXS{perm},dtYS{perm},dtBETA{perm},dtPCTVAR{perm},dtMSE{perm},~] = plsregress(null_X,outcome,10,'CV',10);                   
+        
         clear X  
         
-        tempfname = strcat('data_for_transform_mediation_and_cluster_perm',num2str(perm),'.mat');
-        save(fullfile(basedir,tempfname),"totmagnitude_clust")
+        %tempfname = strcat('data_for_transform_mediation_and_cluster_perm',num2str(perm),'.mat');
+        %save(fullfile(basedir,tempfname),"totmagnitude_clust")
     end
     
     % analyze transformation matrices. first total translation and rotation
@@ -1081,6 +1076,7 @@ if hyper_analyze_transforms == 1
 %     
     
     save transforms_predict_model_results.mat transformXL transformYL transformXS transformYS transformBETA transformPCTVAR transformMSE totmagnitude_mat
+    save null_transforms_predict_model_results.mat dtXL dtYL dtXS dtYS dtBETA dtPCTVAR dtMSE totmagnitude_mat
 
     
 %     % connection wise test
@@ -1116,31 +1112,36 @@ if visualize_pls_results == 1
     load unaligned_dist_model_results.mat
     load null_dist_model_results.mat
     load transforms_predict_model_results.mat
+    load null_transforms_predict_model_results.mat
 
     for i = 1:100
         allMSE(i,1) = aMSE{i}(2,1);
         allMSE(i,2) = uMSE(2,1);
         allMSE(i,3) = dMSE{i}(2,1);
         allMSE(i,4) = transformMSE{i}(2,1);
+        allMSE(i,5) = dtMSE{i}(2,1);
 
         % first component that I will try to analyze
         allPCT(i,1) = aPCTVAR{i}(2,1);
         allPCT(i,3) = dPCTVAR{i}(2,1);
         allPCT(i,2) = uPCTVAR(2,1);
         allPCT(i,4) = transformPCTVAR{i}(2,1);
+        allPCT(i,5) = dtPCTVAR{i}(2,1);
 
         % all coverage
         totPCT(i,:,1) = aPCTVAR{i}(2,:);
         totPCT(i,:,3) = dPCTVAR{i}(2,:);
         totPCT(i,:,2) = uPCTVAR(2,:);
         totPCT(i,:,4) = transformPCTVAR{i}(2,:);
+        totPCT(i,:,5) = dtPCTVAR{i}(2,:);
 
         loadings_to_visualize(:,:,i) = reshape(transformXL{i}(:,1),[828,71]);
+        loadings_to_visualize_null(:,:,i) = reshape(dtXL{i}(:,1),[828,71]);
     end
 
     % visualize MSE
     % no differences in MSE. Distributions look super similar
-    figure(); histogram(allMSE(:,1)); hold on; histogram(allMSE(:,3)); hold on; xline(allMSE(1,2)); hold on; histogram(allMSE(:,4));
+    figure(); histogram(allMSE(:,1)); hold on; histogram(allMSE(:,3)); hold on; xline(allMSE(1,2)); hold on; histogram(allMSE(:,4)); hold on; histogram(allMSE(:,5));
     figure(); histogram(allMSE(:,1)); hold on; xline(allMSE(1,2)); hold on; histogram(allMSE(:,4));
     p_aligned_pls_mse = sum(allMSE(:,1)>allMSE(1,2))./100; % 
     p_transforms_pls_mse = sum(allMSE(:,4)>allMSE(1,2))./100;
@@ -1148,15 +1149,17 @@ if visualize_pls_results == 1
     % visualize pct variance covered
     % unaligned data is no better than the null dist. Aligned data is WAY
     % better than both in terms of percent variance accounted for
-    pctall = figure(); histogram(allPCT(:,1)); hold on; histogram(allPCT(:,3)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4));
-    pcthyp = figure(); histogram(allPCT(:,1)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4));
-    savefig(pctall,'pctall.fig'); savefig(pcthyp,'pct_hyperalignment.fig');
+    % pctall = figure(); histogram(allPCT(:,1)); hold on; histogram(allPCT(:,3)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4)); hold on; histogram(allPCT(:,5));
+    pctall = figure(); histogram(allPCT(:,1)); hold on; xline(allPCT(1,2)); hold on; histogram(allPCT(:,4)); 
+    %savefig(pctall,'pctall.fig'); savefig(pctall,'pct_hyperalignment.fig');
     p_aligned_pls_pct = sum(allPCT(:,1)<allPCT(1,2))./100; % p < 0.01
     p_transform_pls_pct = sum(allPCT(:,4)<allPCT(1,2))./100; % p < 0.01
 
     % visualize pls loadings of first component that accounts for 50-90% of
     % the variance in inflammation
     final_pls_loadings = mean(loadings_to_visualize,3);
+    final_pls_loadings_null = mean(loadings_to_visualize_null,3);
+
     load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/10001_final_ant.mat')
     idx_amyg = size(seitz(1,244).all_data,2) + size(seitz(1,245).all_data,2);
     idx_ofc = size(seitz(1,105).all_data,2) + size(seitz(1,108).all_data,2) + size(seitz(1,111).all_data,2) + size(seitz(1,116).all_data,2) + size(seitz(1,117).all_data,2) + size(seitz(1,118).all_data,2);
@@ -1184,23 +1187,51 @@ if visualize_pls_results == 1
         105 111 116 117 118 ...
         102 108 110 122 204 206 208];
     namesofregions = {'amyg1' 'amyg2' 'ofc1' 'ofc2' 'ofc3' 'ofc4' 'ofc5' 'acc1' 'acc2' 'acc3' 'acc4' 'acc5' 'acc6' 'acc7'};
-    hypatl = atl; hypatl.dat(:,1)=0;
+    hypatl_std = atl; hypatl_std.dat(:,1)=0;
+    hypatl_avg = atl; hypatl_avg.dat(:,1)=0;
+    hypatl_std_null = atl; hypatl_std_null.dat(:,1)=0;
+    hypatl_avg_null = atl; hypatl_avg_null.dat(:,1)=0;
+
     
     sum_final_pls_loadings = sum(final_pls_loadings,2);
+    sum_final_pls_loadings_null = sum(final_pls_loadings_null,2); 
 
     starting_idx = 1;
+
+    % disimilarity of loadings_to_visualize
+    for i = 1:100
+        temp = mean(loadings_to_visualize(:,:,i),2);
+        temp_null = mean(loadings_to_visualize_null(:,:,i),2);
+        disim(:,i) = temp(:);
+        disim_null(:,i) = temp_null(:);
+    end
+    
+    disim_diff_perm = corr(disim) - corr(disim_null);
+    disim_diff_vox = corr(disim') - corr(disim_null');
+
     for r = 1:length(listofregions)
         avg_pls(r) = mean(sum_final_pls_loadings(starting_idx:starting_idx+size(seitz(1,listofregions(r)-1).all_data,2)));
-        hypatl.dat(atl.dat==listofregions(r)) = avg_pls(r);
+        std_pls(r) = std(sum_final_pls_loadings(starting_idx:starting_idx+size(seitz(1,listofregions(r)-1).all_data,2)));
+        hypatl_avg.dat(atl.dat==listofregions(r)) = avg_pls(r);
+        hypatl_std.dat(atl.dat==listofregions(r)) = std_pls(r);
+
+        avg_pls_null(r) = mean(sum_final_pls_loadings_null(starting_idx:starting_idx+size(seitz(1,listofregions(r)-1).all_data,2)));
+        std_pls_null(r) = std(sum_final_pls_loadings_null(starting_idx:starting_idx+size(seitz(1,listofregions(r)-1).all_data,2)));
+        hypatl_avg_null.dat(atl.dat==listofregions(r)) = avg_pls_null(r);
+        hypatl_std_null.dat(atl.dat==listofregions(r)) = std_pls_null(r);
         starting_idx = starting_idx + size(seitz(1,listofregions(r)).all_data,2);
     end
     
-    hypatl.mean         
+    %hypatl.mean         
     avg_z_table = avg_pls; avg_z_table=array2table(avg_z_table);
     avg_z_table.Properties.VariableNames = namesofregions;
-     
-    save avg_z_and_brain.mat avg_z_table hypatl
 
+    avg_z_table_null = avg_pls_null; avg_z_table_null=array2table(avg_z_table_null);
+    avg_z_table_null.Properties.VariableNames = namesofregions;
+     
+    save avg_z_and_brain.mat avg_z_table hypatl_avg hypatl_std avg_z_table_null hypatl_avg_null hypatl_std_null avg_pls std_pls avg_pls_null std_pls_null loadings_to_visualize loadings_to_visualize_null
+    
+    
 end
 
 if mediation_with_hyp_transform == 1
@@ -1211,7 +1242,7 @@ if mediation_with_hyp_transform == 1
     atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
     
     important_to_change = 1;
-    outcome = regressors.inflammation(:,1);
+    outcome = regressors.longGeneralDistress(:,1);
     symptom_long= regressors.longAnhedonia(:,1);
     symptom_long(isnan(regressors.inflammation))=[];
     symptom = regressors.Anhedonia(:,1);

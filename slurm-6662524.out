@@ -1,0 +1,118 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2021 The MathWorks, Inc.
+             R2021b Update 1 (9.11.0.1809720) 64-bit (glnxa64)
+                              November 2, 2021
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+[Warning: Function assert has the same name as a MATLAB builtin. We suggest you
+rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function assert has the same name as a MATLAB builtin. We suggest you
+rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function iscolumn has the same name as a MATLAB builtin. We suggest
+you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function ismatrix has the same name as a MATLAB builtin. We suggest
+you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function isrow has the same name as a MATLAB builtin. We suggest you
+rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function narginchk has the same name as a MATLAB builtin. We suggest
+you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function isequaln has the same name as a MATLAB builtin. We suggest
+you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function contains has the same name as a MATLAB builtin. We suggest
+you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function endsWith has the same name as a MATLAB builtin. We suggest
+you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function newline has the same name as a MATLAB builtin. We suggest you
+rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function startsWith has the same name as a MATLAB builtin. We suggest
+you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function isfile has the same name as a MATLAB builtin. We suggest you
+rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+[Warning: Function isfolder has the same name as a MATLAB builtin. We suggest
+you rename the function to avoid a potential name conflict.] 
+[> In path (line 109)
+In addpath (line 86)] 
+10004: missing immune data 
+10008: missing traum2 data 
+10034: missing immune data 
+10059: missing immune data 
+10081: missing immune data 
+10090: missing immune data 
+10093: missing immune data 
+10116: missing immune data 
+10134: missing traum1 data 
+10135: missing immune data 
+10142: missing immune data 
+10143: missing immune data 
+10143: missing traum1 data 
+10148: missing immune data 
+10177: missing immune data 
+10177: missing traum1 data 
+10209: missing immune data 
+10209: missing traum1 data 
+10224: missing immune data 
+10237: missing traum1 data 
+10239: missing traum1 data 
+10249: missing traum1 data 
+10254: missing traum1 data 
+10328: missing traum1 data 
+10337: missing immune data 
+10388: missing immune data 
+10405: missing immune data 
+10411: missing immune data 
+10422: missing immune data 
+10439: missing immune data 
+10470: missing immune data 
+20214: missing immune data 
+20461: missing immune data 
+20461: missing immune data 
+20461: missing traum1 data 
+20461: missing traum1 data 
+20461: missing traum2 data 
+20461: missing med data 
+20653: missing immune data 
+20724: missing immune data 
+20743: missing immune data 
+20785: missing immune data 
+20876: missing immune data 
+20897: missing traum1 data 
+20970: missing immune data 
+20996: missing immune data 
+20996: missing traum1 data 
+21001: missing immune data 
+21010: missing immune data 
+21042: missing immune data 
+21149: missing immune data 
+21276: missing immune data 
+21508: missing immune data 
+Im planning to do this many permutations:100
+Im on permutation:1
+slurmstepd: error: *** JOB 6662524 ON qnode0517 CANCELLED AT 2024-04-04T16:47:36 ***

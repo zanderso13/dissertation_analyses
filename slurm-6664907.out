@@ -60,13 +60,9 @@ In addpath (line 86)]
 you rename the function to avoid a potential name conflict.] 
 [> In path (line 109)
 In addpath (line 86)] 
-10008: missing traum2 data 
 10029: missing immune data 
 10029: missing traum1 data 
-10034: missing immune data 
-10059: missing immune data 
 10081: missing immune data 
-10090: missing immune data 
 10093: missing immune data 
 10116: missing immune data 
 10125: missing immune data 
@@ -76,6 +72,8 @@ In addpath (line 86)]
 10142: missing immune data 
 10143: missing immune data 
 10143: missing traum1 data 
+10148: missing immune data 
+10161: missing immune data 
 10177: missing immune data 
 10177: missing traum1 data 
 10218: missing immune data 
@@ -86,21 +84,27 @@ In addpath (line 86)]
 10239: missing traum1 data 
 10249: missing traum1 data 
 10254: missing traum1 data 
-10272: missing immune data 
 10296: missing immune data 
+10319: missing immune data 
+10319: missing traum1 data 
 10323: missing immune data 
 10328: missing traum1 data 
 10337: missing immune data 
 10388: missing immune data 
 10405: missing immune data 
 10411: missing immune data 
-10422: missing immune data 
 10439: missing immune data 
 10443: missing immune data 
 10470: missing immune data 
 20032: missing immune data 
 20150: missing traum1 data 
 20214: missing immune data 
+20461: missing immune data 
+20461: missing immune data 
+20461: missing traum1 data 
+20461: missing traum1 data 
+20461: missing traum2 data 
+20461: missing med data 
 20627: missing immune data 
 20653: missing immune data 
 20674: missing immune data 
@@ -549,6 +553,6 @@ Error in LinearModel.fit (line 1035)
 Error in fitlm (line 121)
 model = LinearModel.fit(X,varargin{:});
 
-Error in dissertation_main_analysis (line 990)
+Error in dissertation_main_analysis_inflammation_rest (line 1030)
     mdl_inf_trans = fitlm(mdl_input,'inflammation ~ translation + race + ethnicity + sex + meds + inc + site');
 } 

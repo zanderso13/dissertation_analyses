@@ -113,107 +113,6 @@ In addpath (line 86)]
 21149: missing immune data 
 21276: missing immune data 
 21508: missing immune data 
-Im planning to do this many permutations:100
-Im on permutation:1
-Im on permutation:2
-Im on permutation:3
-Im on permutation:4
-Im on permutation:5
-Im on permutation:6
-Im on permutation:7
-Im on permutation:8
-Im on permutation:9
-Im on permutation:10
-Im on permutation:11
-Im on permutation:12
-Im on permutation:13
-Im on permutation:14
-Im on permutation:15
-Im on permutation:16
-Im on permutation:17
-Im on permutation:18
-Im on permutation:19
-Im on permutation:20
-Im on permutation:21
-Im on permutation:22
-Im on permutation:23
-Im on permutation:24
-Im on permutation:25
-Im on permutation:26
-Im on permutation:27
-Im on permutation:28
-Im on permutation:29
-Im on permutation:30
-Im on permutation:31
-Im on permutation:32
-Im on permutation:33
-Im on permutation:34
-Im on permutation:35
-Im on permutation:36
-Im on permutation:37
-Im on permutation:38
-Im on permutation:39
-Im on permutation:40
-Im on permutation:41
-Im on permutation:42
-Im on permutation:43
-Im on permutation:44
-Im on permutation:45
-Im on permutation:46
-Im on permutation:47
-Im on permutation:48
-Im on permutation:49
-Im on permutation:50
-Im on permutation:51
-Im on permutation:52
-Im on permutation:53
-Im on permutation:54
-Im on permutation:55
-Im on permutation:56
-Im on permutation:57
-Im on permutation:58
-Im on permutation:59
-Im on permutation:60
-Im on permutation:61
-Im on permutation:62
-Im on permutation:63
-Im on permutation:64
-Im on permutation:65
-Im on permutation:66
-Im on permutation:67
-Im on permutation:68
-Im on permutation:69
-Im on permutation:70
-Im on permutation:71
-Im on permutation:72
-Im on permutation:73
-Im on permutation:74
-Im on permutation:75
-Im on permutation:76
-Im on permutation:77
-Im on permutation:78
-Im on permutation:79
-Im on permutation:80
-Im on permutation:81
-Im on permutation:82
-Im on permutation:83
-Im on permutation:84
-Im on permutation:85
-Im on permutation:86
-Im on permutation:87
-Im on permutation:88
-Im on permutation:89
-Im on permutation:90
-Im on permutation:91
-Im on permutation:92
-Im on permutation:93
-Im on permutation:94
-Im on permutation:95
-Im on permutation:96
-Im on permutation:97
-Im on permutation:98
-Im on permutation:99
-Im on permutation:100
 Im on permutation:1
 Im on permutation:2
 Im on permutation:3
@@ -537,6 +436,6 @@ Error in LinearModel.fit (line 1035)
 Error in fitlm (line 121)
 model = LinearModel.fit(X,varargin{:});
 
-Error in dissertation_main_analysis (line 1004)
+Error in dissertation_main_analysis_inflammation_mid (line 1030)
     mdl_inf_trans = fitlm(mdl_input,'inflammation ~ translation + race + ethnicity + sex + meds + inc + site');
 } 
