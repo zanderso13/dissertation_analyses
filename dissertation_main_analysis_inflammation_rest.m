@@ -20,11 +20,11 @@ whole_brain_moderated_mediation = 0;
 hyper= 0; % hardcoded which seed you're looking at
 important_to_change = 1; % table of contents. This is the outcome. Need to remove NaN from the outcome you want to analyze
 
-hyper_analyze = 1; do_pls_regress = 1; 
+hyper_analyze = 0; do_pls_regress = 0; 
 
-hyper_analyze_transforms = 1; % visualize these pls results on transformations using the visualize_pls_results option
+hyper_analyze_transforms = 0; % visualize these pls results on transformations using the visualize_pls_results option
 
-visualize_pls_results = 0;
+visualize_pls_results = 1;
 
 mediation_with_hyp_transform = 0;
 
@@ -920,7 +920,7 @@ if hyper_analyze == 1
         % easier to define an outcome here which will then be plugged in
         % throughout the document
         important_to_change = 1;
-        outcome = regressors.longGeneralDistress(:,1);
+        outcome = regressors.longAnhedonia(:,1);
         symptom = regressors.longGeneralDistress(:,1);
         symptom(isnan(regressors.inflammation))=[];
         outcome(isnan(regressors.inflammation))=[];
@@ -967,7 +967,7 @@ if hyper_analyze_transforms == 1
     end
 
     important_to_change = 1;
-    outcome = regressors.longGeneralDistress(:,1);
+    outcome = regressors.longAnhedonia(:,1);
     symptom = regressors.longGeneralDistress(:,1);
     symptom(isnan(regressors.inflammation))=[];
     outcome(isnan(regressors.inflammation))=[];
@@ -1018,44 +1018,44 @@ if hyper_analyze_transforms == 1
         %save(fullfile(basedir,tempfname),"totmagnitude_clust")
     end
     
-    % analyze transformation matrices. first total translation and rotation
-    mdl_input = regressors;
-    mdl_input(isnan(mdl_input.inflammation),:)=[];
-    
-    
-    hyper_mdl_inputs = zscore([mean(all_translation(:,1),3),mean(all_scale(:,:),2),sum(all_reflection(:,:),2),mean(totmagnitude_comp,3)]);
-    hyper_mdl_inputs = array2table(hyper_mdl_inputs); hyper_mdl_inputs.Properties.VariableNames = {'translation','scale','reflection','transrot'};
-    mdl_input = [mdl_input,hyper_mdl_inputs];
-    
-    mdl_inf_trans = fitlm(mdl_input,'inflammation ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_inf_scale = fitlm(mdl_input,'inflammation ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_inf_transrot = fitlm(mdl_input,'inflammation ~ transrot + race + ethnicity + sex + meds + inc + site');
-
-    mdl_gd_trans = fitlm(mdl_input,'GeneralDistress ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_gd_scale = fitlm(mdl_input,'GeneralDistress ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_gd_scale = fitlm(mdl_input,'GeneralDistress ~ transrot + race + ethnicity + sex + meds + inc + site');    
-
-    mdl_anh_trans = fitlm(mdl_input,'Anhedonia ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_anh_scale = fitlm(mdl_input,'Anhedonia ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_anh_ref = fitlm(mdl_input,'Anhedonia ~ transrot + race + ethnicity + sex + meds + inc + site');
-
-    mdl_fear_trans = fitlm(mdl_input,'Fears ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_fear_scale = fitlm(mdl_input,'Fears ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_fear_ref = fitlm(mdl_input,'Fears ~ transrot + race + ethnicity + sex + meds + inc + site');
-
-    mdl_lgd_trans = fitlm(mdl_input,'longGeneralDistress ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_lgd_scale = fitlm(mdl_input,'longGeneralDistress ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_lgd_ref = fitlm(mdl_input,'longGeneralDistress ~ transrot + race + ethnicity + sex + meds + inc + site');
-
-    mdl_lanh_trans = fitlm(mdl_input,'longAnhedonia ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_lanh_scale = fitlm(mdl_input,'longAnhedonia ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_lanh_ref = fitlm(mdl_input,'longAnhedonia ~ transrot + race + ethnicity + sex + meds + inc + site');
-
-    mdl_lfear_trans = fitlm(mdl_input,'longFears ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_lfear_scale = fitlm(mdl_input,'longFears ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_lfear_ref = fitlm(mdl_input,'longFears ~ transrot + race + ethnicity + sex + meds + inc + site');
-    
-    
+%     % analyze transformation matrices. first total translation and rotation
+%     mdl_input = regressors;
+%     mdl_input(isnan(mdl_input.inflammation),:)=[];
+%     
+%     
+%     hyper_mdl_inputs = zscore([mean(all_translation(:,1),3),mean(all_scale(:,:),2),sum(all_reflection(:,:),2),mean(totmagnitude_comp,3)]);
+%     hyper_mdl_inputs = array2table(hyper_mdl_inputs); hyper_mdl_inputs.Properties.VariableNames = {'translation','scale','reflection','transrot'};
+%     mdl_input = [mdl_input,hyper_mdl_inputs];
+%     
+%     mdl_inf_trans = fitlm(mdl_input,'inflammation ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_inf_scale = fitlm(mdl_input,'inflammation ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_inf_transrot = fitlm(mdl_input,'inflammation ~ transrot + race + ethnicity + sex + meds + inc + site');
+% 
+%     mdl_gd_trans = fitlm(mdl_input,'GeneralDistress ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_gd_scale = fitlm(mdl_input,'GeneralDistress ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_gd_scale = fitlm(mdl_input,'GeneralDistress ~ transrot + race + ethnicity + sex + meds + inc + site');    
+% 
+%     mdl_anh_trans = fitlm(mdl_input,'Anhedonia ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_anh_scale = fitlm(mdl_input,'Anhedonia ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_anh_ref = fitlm(mdl_input,'Anhedonia ~ transrot + race + ethnicity + sex + meds + inc + site');
+% 
+%     mdl_fear_trans = fitlm(mdl_input,'Fears ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_fear_scale = fitlm(mdl_input,'Fears ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_fear_ref = fitlm(mdl_input,'Fears ~ transrot + race + ethnicity + sex + meds + inc + site');
+% 
+%     mdl_lgd_trans = fitlm(mdl_input,'longGeneralDistress ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_lgd_scale = fitlm(mdl_input,'longGeneralDistress ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_lgd_ref = fitlm(mdl_input,'longGeneralDistress ~ transrot + race + ethnicity + sex + meds + inc + site');
+% 
+%     mdl_lanh_trans = fitlm(mdl_input,'longAnhedonia ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_lanh_scale = fitlm(mdl_input,'longAnhedonia ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_lanh_ref = fitlm(mdl_input,'longAnhedonia ~ transrot + race + ethnicity + sex + meds + inc + site');
+% 
+%     mdl_lfear_trans = fitlm(mdl_input,'longFears ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_lfear_scale = fitlm(mdl_input,'longFears ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_lfear_ref = fitlm(mdl_input,'longFears ~ transrot + race + ethnicity + sex + meds + inc + site');
+%     
+%     
     
 
 %     for perm = 1:100
@@ -1156,9 +1156,13 @@ if visualize_pls_results == 1
     p_transform_pls_pct = sum(allPCT(:,4)<allPCT(1,2))./100; % p < 0.01
 
     % visualize pls loadings of first component that accounts for 50-90% of
-    % the variance in inflammation
-    final_pls_loadings = mean(loadings_to_visualize,3);
-    final_pls_loadings_null = mean(loadings_to_visualize_null,3);
+    % the variance in inflammation. Doing a sum of squares here because I
+    % don't think sign is going to be meaningful in the pca. PCA does
+    % strange things in it's attempts to maximize variance accounted for.
+    % So, any large loading is meaningful, but directionality here is not
+    % interpretable. Need to go back to the raw loadings to do that.
+    final_pls_loadings = sqrt(sum(loadings_to_visualize.^2,3));
+    final_pls_loadings_null = sqrt(sum(loadings_to_visualize_null.^2,3));
 
     load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/10001_final_ant.mat')
     idx_amyg = size(seitz(1,244).all_data,2) + size(seitz(1,245).all_data,2);
@@ -1210,9 +1214,9 @@ if visualize_pls_results == 1
     disim_diff_vox = corr(disim') - corr(disim_null');
 
     for r = 1:length(listofregions)
-        avg_pls(r) = mean(sum_final_pls_loadings(starting_idx:starting_idx+size(seitz(1,listofregions(r)-1).all_data,2)));
+        sumsq_pls(r) = mean(sum_final_pls_loadings(starting_idx:starting_idx+size(seitz(1,listofregions(r)-1).all_data,2)));
         std_pls(r) = std(sum_final_pls_loadings(starting_idx:starting_idx+size(seitz(1,listofregions(r)-1).all_data,2)));
-        hypatl_avg.dat(atl.dat==listofregions(r)) = avg_pls(r);
+        hypatl_avg.dat(atl.dat==listofregions(r)) = sumsq_pls(r);
         hypatl_std.dat(atl.dat==listofregions(r)) = std_pls(r);
 
         avg_pls_null(r) = mean(sum_final_pls_loadings_null(starting_idx:starting_idx+size(seitz(1,listofregions(r)-1).all_data,2)));
@@ -1223,35 +1227,53 @@ if visualize_pls_results == 1
     end
     
     %hypatl.mean         
-    avg_z_table = avg_pls; avg_z_table=array2table(avg_z_table);
+    avg_z_table = sumsq_pls; avg_z_table=array2table(avg_z_table);
     avg_z_table.Properties.VariableNames = namesofregions;
 
     avg_z_table_null = avg_pls_null; avg_z_table_null=array2table(avg_z_table_null);
     avg_z_table_null.Properties.VariableNames = namesofregions;
      
-    save avg_z_and_brain.mat avg_z_table hypatl_avg hypatl_std avg_z_table_null hypatl_avg_null hypatl_std_null avg_pls std_pls avg_pls_null std_pls_null loadings_to_visualize loadings_to_visualize_null
+    save avg_z_and_brain.mat avg_z_table hypatl_avg hypatl_std avg_z_table_null hypatl_avg_null hypatl_std_null sumsq_pls std_pls avg_pls_null std_pls_null loadings_to_visualize loadings_to_visualize_null
     
     
 end
 
 if mediation_with_hyp_transform == 1
-    cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/mediation_and_clustering_data')
-    load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/10001_final_ant.mat')
-    med_fnames = filenames(fullfile('data*mat'));
-    
-    atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
-    
+    if mid == 1
+        transform_files = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/*transforms*.mat'));
+    end
+    if rest == 1
+        transform_files = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/hyperalignment_results/*transforms*.mat'));
+    end
+
     important_to_change = 1;
-    outcome = regressors.longGeneralDistress(:,1);
-    symptom_long= regressors.longAnhedonia(:,1);
-    symptom_long(isnan(regressors.inflammation))=[];
-    symptom = regressors.Anhedonia(:,1);
+    outcome = regressors.longAnhedonia(:,1);
+    symptom = regressors.longGeneralDistress(:,1);
     symptom(isnan(regressors.inflammation))=[];
     outcome(isnan(regressors.inflammation))=[];
-    regressors(isnan(regressors.inflammation),:)=[];
 
-    for perm = 1:length(med_fnames)
-        load(med_fnames{perm});
+    for perm = 1:length(transform_files)
+        load(transform_files{perm})
+        fprintf(strcat('Im pulling data from perm: ', num2str(perm),'\n'))
+        for sub = 1:length(transforms_resorted)
+
+            % total magnitude combine rotation and translation
+            totmagnitude_mat(:,:,sub) = transforms_resorted{sub}.T' * transforms_resorted{sub}.c';
+            totmagnitude_clust(sub,:,:) = transforms_resorted{sub}.T' * transforms_resorted{sub}.c';
+            totmagnitude_temp = (transforms_resorted{sub}.T' * transforms_resorted{sub}.c').^2;
+            %totmagnitude_temp = (transforms_resorted{sub}.c * transforms_resorted{sub}.T).^2;
+            totmagnitude_comp(sub,1,perm) = sum(totmagnitude_temp(:));
+            totmagnitude_pls(sub,:,perm) = zscore(totmagnitude_temp(:));
+
+            
+        end  
+        
+       
+    end
+    atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
+    fnames_for_here = fnames(~isnan(regressors.inflammation));
+    for perm = 1:100
+        load(fnames_for_here{perm});
         listofregions = [244 245 ...
         105 111 116 117 118 ...
         102 108 110 122 204 206 208];
@@ -1263,6 +1285,7 @@ if mediation_with_hyp_transform == 1
             
             current_data_temp{r} = mean(totmagnitude_clust(:,starting_idx:starting_idx+size(seitz(1,listofregions(r)).all_data,2)-1,:),3);
             starting_idx = starting_idx + size(seitz(1,listofregions(r)).all_data,2);
+            all_transform_data(r,:,perm) = mean(totmagnitude_clust(:,starting_idx:starting_idx+size(seitz(1,listofregions(r)).all_data,2)-1,:),3);
             
         end       
         totmagnitude_final(:,:,perm) = mean(totmagnitude_clust,3);
@@ -1283,9 +1306,12 @@ if mediation_with_hyp_transform == 1
             )./6;
        
     end
-    results_amyg = mediation(outcome, symptom_long, zscore(mean(bilateral_amyg,2)),'M',symptom,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
-    results_ofc = mediation(outcome, symptom_long, zscore(mean(bilateral_ofc,2)),'M',symptom,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
-    results_acc = mediation(outcome, symptom_long, zscore(mean(bilateral_acc,2)),'M',symptom,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+    
+
+
+    results_amyg = mediation(outcome, symptom, zscore(mean(bilateral_amyg,2)),'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+    results_ofc = mediation(outcome, symptom, zscore(mean(bilateral_ofc,2)),'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+    results_acc = mediation(outcome, symptom, zscore(mean(bilateral_acc,2)),'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
 
     [idx,C,sumd,D] = kmeans(zscore(mean(totmagnitude_final,3)),4);
     [idxclin,Cclin,sumdclin,Dclin] = kmeans([regressors.longGeneralDistress,regressors.longAnhedonia,regressors.longFears],4);
@@ -1302,4 +1328,5 @@ if mediation_with_hyp_transform == 1
     clust_mdl2 = fitlm(idx,regressors.longGeneralDistress)
     
 end
+
 

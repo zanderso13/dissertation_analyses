@@ -920,7 +920,7 @@ if hyper_analyze == 1
         % easier to define an outcome here which will then be plugged in
         % throughout the document
         important_to_change = 1;
-        outcome = regressors.longGeneralDistress(:,1);
+        outcome = regressors.longAnhedonia(:,1);
         symptom = regressors.longGeneralDistress(:,1);
         symptom(isnan(regressors.inflammation))=[];
         outcome(isnan(regressors.inflammation))=[];
@@ -967,7 +967,7 @@ if hyper_analyze_transforms == 1
     end
 
     important_to_change = 1;
-    outcome = regressors.longGeneralDistress(:,1);
+    outcome = regressors.longAnhedonia(:,1);
     symptom = regressors.longGeneralDistress(:,1);
     symptom(isnan(regressors.inflammation))=[];
     outcome(isnan(regressors.inflammation))=[];
@@ -1018,44 +1018,44 @@ if hyper_analyze_transforms == 1
         %save(fullfile(basedir,tempfname),"totmagnitude_clust")
     end
     
-    % analyze transformation matrices. first total translation and rotation
-    mdl_input = regressors;
-    mdl_input(isnan(mdl_input.inflammation),:)=[];
-    
-    
-    hyper_mdl_inputs = zscore([mean(all_translation(:,1),3),mean(all_scale(:,:),2),sum(all_reflection(:,:),2),mean(totmagnitude_comp,3)]);
-    hyper_mdl_inputs = array2table(hyper_mdl_inputs); hyper_mdl_inputs.Properties.VariableNames = {'translation','scale','reflection','transrot'};
-    mdl_input = [mdl_input,hyper_mdl_inputs];
-    
-    mdl_inf_trans = fitlm(mdl_input,'inflammation ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_inf_scale = fitlm(mdl_input,'inflammation ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_inf_transrot = fitlm(mdl_input,'inflammation ~ transrot + race + ethnicity + sex + meds + inc + site');
-
-    mdl_gd_trans = fitlm(mdl_input,'GeneralDistress ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_gd_scale = fitlm(mdl_input,'GeneralDistress ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_gd_scale = fitlm(mdl_input,'GeneralDistress ~ transrot + race + ethnicity + sex + meds + inc + site');    
-
-    mdl_anh_trans = fitlm(mdl_input,'Anhedonia ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_anh_scale = fitlm(mdl_input,'Anhedonia ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_anh_ref = fitlm(mdl_input,'Anhedonia ~ transrot + race + ethnicity + sex + meds + inc + site');
-
-    mdl_fear_trans = fitlm(mdl_input,'Fears ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_fear_scale = fitlm(mdl_input,'Fears ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_fear_ref = fitlm(mdl_input,'Fears ~ transrot + race + ethnicity + sex + meds + inc + site');
-
-    mdl_lgd_trans = fitlm(mdl_input,'longGeneralDistress ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_lgd_scale = fitlm(mdl_input,'longGeneralDistress ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_lgd_ref = fitlm(mdl_input,'longGeneralDistress ~ transrot + race + ethnicity + sex + meds + inc + site');
-
-    mdl_lanh_trans = fitlm(mdl_input,'longAnhedonia ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_lanh_scale = fitlm(mdl_input,'longAnhedonia ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_lanh_ref = fitlm(mdl_input,'longAnhedonia ~ transrot + race + ethnicity + sex + meds + inc + site');
-
-    mdl_lfear_trans = fitlm(mdl_input,'longFears ~ translation + race + ethnicity + sex + meds + inc + site');
-    mdl_lfear_scale = fitlm(mdl_input,'longFears ~ scale + race + ethnicity + sex + meds + inc + site');
-    mdl_lfear_ref = fitlm(mdl_input,'longFears ~ transrot + race + ethnicity + sex + meds + inc + site');
-    
-    
+%     % analyze transformation matrices. first total translation and rotation
+%     mdl_input = regressors;
+%     mdl_input(isnan(mdl_input.inflammation),:)=[];
+%     
+%     
+%     hyper_mdl_inputs = zscore([mean(all_translation(:,1),3),mean(all_scale(:,:),2),sum(all_reflection(:,:),2),mean(totmagnitude_comp,3)]);
+%     hyper_mdl_inputs = array2table(hyper_mdl_inputs); hyper_mdl_inputs.Properties.VariableNames = {'translation','scale','reflection','transrot'};
+%     mdl_input = [mdl_input,hyper_mdl_inputs];
+%     
+%     mdl_inf_trans = fitlm(mdl_input,'inflammation ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_inf_scale = fitlm(mdl_input,'inflammation ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_inf_transrot = fitlm(mdl_input,'inflammation ~ transrot + race + ethnicity + sex + meds + inc + site');
+% 
+%     mdl_gd_trans = fitlm(mdl_input,'GeneralDistress ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_gd_scale = fitlm(mdl_input,'GeneralDistress ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_gd_scale = fitlm(mdl_input,'GeneralDistress ~ transrot + race + ethnicity + sex + meds + inc + site');    
+% 
+%     mdl_anh_trans = fitlm(mdl_input,'Anhedonia ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_anh_scale = fitlm(mdl_input,'Anhedonia ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_anh_ref = fitlm(mdl_input,'Anhedonia ~ transrot + race + ethnicity + sex + meds + inc + site');
+% 
+%     mdl_fear_trans = fitlm(mdl_input,'Fears ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_fear_scale = fitlm(mdl_input,'Fears ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_fear_ref = fitlm(mdl_input,'Fears ~ transrot + race + ethnicity + sex + meds + inc + site');
+% 
+%     mdl_lgd_trans = fitlm(mdl_input,'longGeneralDistress ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_lgd_scale = fitlm(mdl_input,'longGeneralDistress ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_lgd_ref = fitlm(mdl_input,'longGeneralDistress ~ transrot + race + ethnicity + sex + meds + inc + site');
+% 
+%     mdl_lanh_trans = fitlm(mdl_input,'longAnhedonia ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_lanh_scale = fitlm(mdl_input,'longAnhedonia ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_lanh_ref = fitlm(mdl_input,'longAnhedonia ~ transrot + race + ethnicity + sex + meds + inc + site');
+% 
+%     mdl_lfear_trans = fitlm(mdl_input,'longFears ~ translation + race + ethnicity + sex + meds + inc + site');
+%     mdl_lfear_scale = fitlm(mdl_input,'longFears ~ scale + race + ethnicity + sex + meds + inc + site');
+%     mdl_lfear_ref = fitlm(mdl_input,'longFears ~ transrot + race + ethnicity + sex + meds + inc + site');
+%     
+%     
     
 
 %     for perm = 1:100
@@ -1156,9 +1156,13 @@ if visualize_pls_results == 1
     p_transform_pls_pct = sum(allPCT(:,4)<allPCT(1,2))./100; % p < 0.01
 
     % visualize pls loadings of first component that accounts for 50-90% of
-    % the variance in inflammation
-    final_pls_loadings = mean(loadings_to_visualize,3);
-    final_pls_loadings_null = mean(loadings_to_visualize_null,3);
+    % the variance in inflammation. Doing a sum of squares here because I
+    % don't think sign is going to be meaningful in the pca. PCA does
+    % strange things in it's attempts to maximize variance accounted for.
+    % So, any large loading is meaningful, but directionality here is not
+    % interpretable. Need to go back to the raw loadings to do that.
+    final_pls_loadings = sqrt(sum(loadings_to_visualize.^2,3));
+    final_pls_loadings_null = sqrt(sum(loadings_to_visualize_null.^2,3));
 
     load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/10001_final_ant.mat')
     idx_amyg = size(seitz(1,244).all_data,2) + size(seitz(1,245).all_data,2);
@@ -1242,7 +1246,7 @@ if mediation_with_hyp_transform == 1
     atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
     
     important_to_change = 1;
-    outcome = regressors.longGeneralDistress(:,1);
+    outcome = regressors.longAnhedonia(:,1);
     symptom_long= regressors.longAnhedonia(:,1);
     symptom_long(isnan(regressors.inflammation))=[];
     symptom = regressors.Anhedonia(:,1);

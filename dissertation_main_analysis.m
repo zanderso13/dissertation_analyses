@@ -8,7 +8,7 @@ region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
 whole_brain_networks = 0; overwrite_nii = 0; 
 
-linear_seed_to_seed = 0; seeddir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
+linear_seed_to_seed = 1; seeddir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
 mediation_seed_to_seed = 0; % linear seed to see must be on
 moderated_mediation_seed_to_seed = 0;
 network_based_analyses = 0; overwrite_networks = 0; mediation_networks = 0; 
@@ -17,16 +17,18 @@ moderated_mediation_networks = 0; % network based analyses must be on
 whole_brain_mediation_analysis = 0; 
 whole_brain_moderated_mediation = 0;
 
-hyper= 1; % hardcoded which seed you're looking at
+hyper= 0; % hardcoded which seed you're looking at
 important_to_change = 1; % table of contents. This is the outcome. Need to remove NaN from the outcome you want to analyze
 
 hyper_analyze = 0; do_pls_regress = 0; 
 
-hyper_analyze_transforms = 1; % visualize these pls results on transformations using the visualize_pls_results option
+hyper_analyze_transforms = 0; % visualize these pls results on transformations using the visualize_pls_results option
 
-visualize_pls_results = 1;
+visualize_pls_results = 0;
 
-mediation_with_hyp_transform = 0;
+make_mediation_with_hyp_transform = 0;
+
+transformation_mediation = 0;
 
 if mid == 1
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats';
@@ -336,7 +338,7 @@ if linear_seed_to_seed == 1
     ofc_data = extract_roi_averages(final_brain,ofc);
     acc_data = extract_roi_averages(final_brain,acc);
     vs_data = extract_roi_averages(final_brain,vs);
-
+    keyboard
     seed2seed = array2table([amyg_data.dat,vs_data.dat,ofc_data.dat,acc_data.dat]); 
     seed2seed.Properties.VariableNames = {'amygdala','vs','ofc','acc'};
 
@@ -1103,10 +1105,10 @@ end
 
 if visualize_pls_results == 1
     if mid == 1
-        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/shortcuts')
+        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/shortcuts/anhedonia')
     end
     if rest == 1
-        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/hyperalignment_results/shortcuts')
+        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/hyperalignment_results/shortcuts/anhedonia')
     end
     load aligned_dist_model_results.mat
     load unaligned_dist_model_results.mat
@@ -1156,9 +1158,13 @@ if visualize_pls_results == 1
     p_transform_pls_pct = sum(allPCT(:,4)<allPCT(1,2))./100; % p < 0.01
 
     % visualize pls loadings of first component that accounts for 50-90% of
-    % the variance in inflammation
-    final_pls_loadings = mean(loadings_to_visualize,3);
-    final_pls_loadings_null = mean(loadings_to_visualize_null,3);
+    % the variance in inflammation. Doing a sum of squares here because I
+    % don't think sign is going to be meaningful in the pca. PCA does
+    % strange things in it's attempts to maximize variance accounted for.
+    % So, any large loading is meaningful, but directionality here is not
+    % interpretable. Need to go back to the raw loadings to do that.
+    final_pls_loadings = sqrt(sum(loadings_to_visualize.^2,3));
+    final_pls_loadings_null = sqrt(sum(loadings_to_visualize_null.^2,3));
 
     load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/10001_final_ant.mat')
     idx_amyg = size(seitz(1,244).all_data,2) + size(seitz(1,245).all_data,2);
@@ -1193,8 +1199,8 @@ if visualize_pls_results == 1
     hypatl_avg_null = atl; hypatl_avg_null.dat(:,1)=0;
 
     
-    sum_final_pls_loadings = sum(final_pls_loadings,2);
-    sum_final_pls_loadings_null = sum(final_pls_loadings_null,2); 
+    sum_final_pls_loadings = zscore(sum(final_pls_loadings,2));
+    sum_final_pls_loadings_null = zscore(sum(final_pls_loadings_null,2)); 
 
     starting_idx = 1;
 
@@ -1234,24 +1240,42 @@ if visualize_pls_results == 1
     
 end
 
-if mediation_with_hyp_transform == 1
-    cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/mediation_and_clustering_data')
-    load('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/10001_final_ant.mat')
-    med_fnames = filenames(fullfile('data*mat'));
-    
-    atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
-    
+if make_mediation_with_hyp_transform == 1
+    if mid == 1
+        transform_files = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/*transforms*.mat'));
+    end
+    if rest == 1
+        transform_files = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/hyperalignment_results/*transforms*.mat'));
+    end
+
     important_to_change = 1;
     outcome = regressors.inflammation(:,1);
-    symptom_long= regressors.longAnhedonia(:,1);
-    symptom_long(isnan(regressors.inflammation))=[];
-    symptom = regressors.Anhedonia(:,1);
+    symptom = regressors.longGeneralDistress(:,1);
     symptom(isnan(regressors.inflammation))=[];
     outcome(isnan(regressors.inflammation))=[];
-    regressors(isnan(regressors.inflammation),:)=[];
 
-    for perm = 1:length(med_fnames)
-        load(med_fnames{perm});
+    for perm = 1:length(transform_files)
+        load(transform_files{perm})
+        fprintf(strcat('Im pulling data from perm: ', num2str(perm),'\n'))
+        for sub = 1:length(transforms_resorted)
+
+            % total magnitude combine rotation and translation
+            totmagnitude_mat(:,:,sub) = transforms_resorted{sub}.T' * transforms_resorted{sub}.c';
+            totmagnitude_clust(sub,:,:) = transforms_resorted{sub}.T' * transforms_resorted{sub}.c';
+            totmagnitude_temp = (transforms_resorted{sub}.T' * transforms_resorted{sub}.c').^2;
+            %totmagnitude_temp = (transforms_resorted{sub}.c * transforms_resorted{sub}.T).^2;
+            totmagnitude_comp(sub,1,perm) = sum(totmagnitude_temp(:));
+            totmagnitude_pls(sub,:,perm) = zscore(totmagnitude_temp(:));
+
+            
+        end  
+        
+       
+    end
+    atl = fmri_data('/home/zaz3744/repo/dissertation_analyses/300_ROI_Set/ROIs_300inVol_MNI.nii');
+    fnames_for_here = fnames(~isnan(regressors.inflammation));
+    for perm = 1:100
+        load(fnames_for_here{perm});
         listofregions = [244 245 ...
         105 111 116 117 118 ...
         102 108 110 122 204 206 208];
@@ -1265,41 +1289,49 @@ if mediation_with_hyp_transform == 1
             starting_idx = starting_idx + size(seitz(1,listofregions(r)).all_data,2);
             
         end       
-        totmagnitude_final(:,:,perm) = mean(totmagnitude_clust,3);
-        bilateral_amyg(:,perm) = (mean(current_data_temp{1},2) + mean(current_data_temp{2},2))./2;
-        bilateral_ofc(:,perm) = (mean(current_data_temp{3},2) +...
-            mean(current_data_temp{4},2)+...
-            mean(current_data_temp{5},2)+...
-            mean(current_data_temp{6},2)+...
-            mean(current_data_temp{7},2)...
-            )./6;
-        bilateral_acc(:,perm) = (mean(current_data_temp{8},2) +...
-            mean(current_data_temp{9},2)+...
-            mean(current_data_temp{10},2)+...
-            mean(current_data_temp{11},2)+...
-            mean(current_data_temp{12},2)+...
-            mean(current_data_temp{13},2)+...
-            mean(current_data_temp{14},2)...
-            )./6;
+        amyg1(:,perm) = mean(current_data_temp{1},2);
+        amyg2(:,perm) = mean(current_data_temp{2},2);
+        ofc1(:,perm) = mean(current_data_temp{3},2);
+        ofc2(:,perm) = mean(current_data_temp{4},2);
+        ofc3(:,perm) = mean(current_data_temp{5},2);
+        ofc4(:,perm) = mean(current_data_temp{6},2);
+        ofc5(:,perm) = mean(current_data_temp{7},2);
+        acc1(:,perm) = mean(current_data_temp{8},2);
+        acc2(:,perm) = mean(current_data_temp{9},2);
+        acc3(:,perm) = mean(current_data_temp{10},2);
+        acc4(:,perm) = mean(current_data_temp{11},2);
+        acc5(:,perm) = mean(current_data_temp{12},2);
+        acc6(:,perm) = mean(current_data_temp{13},2);
+        acc7(:,perm) = mean(current_data_temp{14},2);
+           
        
     end
-    results_amyg = mediation(outcome, symptom_long, zscore(mean(bilateral_amyg,2)),'M',symptom,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
-    results_ofc = mediation(outcome, symptom_long, zscore(mean(bilateral_ofc,2)),'M',symptom,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
-    results_acc = mediation(outcome, symptom_long, zscore(mean(bilateral_acc,2)),'M',symptom,'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
-
-    [idx,C,sumd,D] = kmeans(zscore(mean(totmagnitude_final,3)),4);
-    [idxclin,Cclin,sumdclin,Dclin] = kmeans([regressors.longGeneralDistress,regressors.longAnhedonia,regressors.longFears],4);
-
-    idx1 = zeros(size(idx));idx1(idx==1)=1;
-    idx2 = zeros(size(idx));idx2(idx==2)=1;
-    idx3 = zeros(size(idx));idx3(idx==3)=1;
-    idx4 = zeros(size(idx));idx4(idx==4)=1;
-
-
-    [tbl,chi2,p,labels] = crosstab(idx,idxclin)
-
-    clust_mdl = fitlm([idx,regressors.site,regressors.sex,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc],regressors.longGeneralDistress)
-    clust_mdl2 = fitlm(idx,regressors.longGeneralDistress)
     
+    
+    % run the command below to save mediation input in the transformation
+    % mediation folder that you should create in each directory. Running
+    % those models will be a separate section
+
+    %save transformation_mediation_input_mid.mat amyg1 amyg2 ofc1 ofc2 ofc3 ofc4 ofc5 acc1 acc2 acc3 acc4 acc5 acc6 acc7 regressors
+
+    %     results_amyg = mediation(outcome, symptom, zscore(mean(bilateral_amyg,2)),'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+%     results_ofc = mediation(outcome, symptom, zscore(mean(bilateral_ofc,2)),'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+%     results_acc = mediation(outcome, symptom, zscore(mean(bilateral_acc,2)),'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+
+%     [idx,C,sumd,D] = kmeans(zscore(mean(totmagnitude_final,3)),4);
+%     [idxclin,Cclin,sumdclin,Dclin] = kmeans([regressors.longGeneralDistress,regressors.longAnhedonia,regressors.longFears],4);
+% 
+%     idx1 = zeros(size(idx));idx1(idx==1)=1;
+%     idx2 = zeros(size(idx));idx2(idx==2)=1;
+%     idx3 = zeros(size(idx));idx3(idx==3)=1;
+%     idx4 = zeros(size(idx));idx4(idx==4)=1;
+% 
+% 
+%     [tbl,chi2,p,labels] = crosstab(idx,idxclin)
+% 
+%     clust_mdl = fitlm([idx,regressors.site,regressors.sex,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc],regressors.longGeneralDistress)
+%     clust_mdl2 = fitlm(idx,regressors.longGeneralDistress)
+%     
 end
+
 
