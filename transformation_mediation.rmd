@@ -1,0 +1,215 @@
+---
+title: "Dissertation mediation results"
+author: "Zach Anderson"
+date: "1/31/2024"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+  word_document:
+    toc: yes
+    toc_depth: '2'
+---
+
+```{r, echo=FALSE}
+# Load packages
+library(psych)
+library(lavaan)
+library(ggplot2)
+library(readxl)
+library(semPlot)
+library(gvlma)
+
+setwd("/Users/zacharyanderson/Documents/ACNlab/dissertation_final")
+
+data<-read.csv('transformation_mediation_R_rest.csv')
+
+```
+
+# Descriptive stats
+
+```{r}
+
+# Descriptive statistics
+summary(data)
+
+# Correlations
+correlations <- cor(data)
+print(correlations)
+
+corPlot(data)
+```
+
+# Aim 4 results. SEM 
+
+## mediation General Distress
+
+```{r}
+multipleMediation <- '
+longGeneralDistress ~ b1 * amyg1 + b2 * amyg2 + b3 * ofc1 + b4 * ofc2 + b5 * ofc3 + b6 * ofc4 + b7 * ofc5 + b8 * acc1 + b9 * acc2 + b10 * acc3 + b11 * acc4 + b12 * acc5 + b13 * acc6 + b14 * acc7 + c * inflammation + n1*race + n2*ethnicity + n3*site + n4*meds + n5*sex + n6*inc
+amyg1 ~ a1 * inflammation + na1*race + na2*ethnicity + na3*site + na4*meds + na5*sex + na6*inc
+amyg2 ~ a2 * inflammation+ nb1*race + nb2*ethnicity + nb3*site + nb4*meds + nb5*sex + nb6*inc
+ofc1 ~ a3 * inflammation+ nc1*race + nc2*ethnicity + nc3*site + nc4*meds + nc5*sex + nc6*inc
+ofc2 ~ a4 * inflammation+ nd1*race + nd2*ethnicity + nd3*site + nd4*meds + nd5*sex + nd6*inc
+ofc3 ~ a5 * inflammation+ ne1*race + ne2*ethnicity + ne3*site + ne4*meds + ne5*sex + ne6*inc
+ofc4 ~ a6 * inflammation+ nf1*race + nf2*ethnicity + nf3*site + nf4*meds + nf5*sex + nf6*inc
+ofc5 ~ a7 * inflammation+ ng1*race + ng2*ethnicity + ng3*site + ng4*meds + ng5*sex + ng6*inc
+acc1 ~ a8 * inflammation+ nh1*race + nh2*ethnicity + nh3*site + nh4*meds + nh5*sex + nh6*inc
+acc2 ~ a9 * inflammation+ ni1*race + ni2*ethnicity + ni3*site + ni4*meds + ni5*sex + ni6*inc
+acc3 ~ a10 * inflammation+ nj1*race + nj2*ethnicity + nj3*site + nj4*meds + nj5*sex + nj6*inc
+acc4 ~ a11 * inflammation+ nk1*race + nk2*ethnicity + nk3*site + nk4*meds + nk5*sex + nk6*inc
+acc5 ~ a12 * inflammation+ nl1*race + nl2*ethnicity + nl3*site + nl4*meds + nl5*sex + nl6*inc
+acc6 ~ a13 * inflammation+ nm1*race + nm2*ethnicity + nm3*site + nm4*meds + nm5*sex + nm6*inc
+acc7 ~ a14 * inflammation+ nn1*race + nn2*ethnicity + nn3*site + nn4*meds + nn5*sex + nn6*inc
+
+indirect1 := a1 * b1
+indirect2 := a2 * b2
+indirect3 := a3 * b3
+indirect4 := a4 * b4
+indirect5 := a5 * b5
+indirect6 := a6 * b6
+indirect7 := a7 * b7
+indirect8 := a8 * b8
+indirect9 := a9 * b9
+indirect10 := a10 * b10
+indirect11 := a11 * b11
+indirect12 := a12 * b12
+indirect13 := a13 * b13
+indirect14 := a14 * b14
+totalindirect := indirect1 + indirect2 + indirect3 + indirect4 + indirect5 + indirect6 + indirect7 + indirect8 + indirect9 + indirect10 + indirect11 + indirect12 + indirect13 + indirect14
+total := c + indirect1 + indirect2 + indirect3 + indirect4 + indirect5 + indirect6 + indirect7 + indirect8 + indirect9 + indirect10 + indirect11 + indirect12 + indirect13 + indirect14
+
+'
+fit <- sem(model = multipleMediation, data = data, se = "bootstrap", bootstrap=1000)
+summary(fit)
+
+```
+
+## moderated mediation
+
+```{r}
+multipleModeratedMediation <- '
+longGeneralDistress ~ b1 * amyg1 + b2 * amyg2 + b3 * ofc1 + b4 * ofc2 + b5 * ofc3 + b6 * ofc4 + b7 * ofc5 + b8 * acc1 + b9 * acc2 + b10 * acc3 + b11 * acc4 + b12 * acc5 + b13 * acc6 + b14 * acc7 + c * inflammation + n1*race + n2*ethnicity + n3*site + n4*meds + n5*sex + n6*inc
+amyg1 ~ a1 * cti_inf_interaction + m1*cti + d1*inflammation + na1*race + na2*ethnicity + na3*site + na4*meds + na5*sex + na6*inc
+amyg2 ~ a2 * cti_inf_interaction + m2*cti + d2*inflammation + nb1*race + nb2*ethnicity + nb3*site + nb4*meds + nb5*sex + nb6*inc
+ofc1 ~ a3 * cti_inf_interaction + m3*cti + d3*inflammation + nc1*race + nc2*ethnicity + nc3*site + nc4*meds + nc5*sex + nc6*inc
+ofc2 ~ a4 * cti_inf_interaction+ m4*cti + d4*inflammation + nd1*race + nd2*ethnicity + nd3*site + nd4*meds + nd5*sex + nd6*inc
+ofc3 ~ a5 * cti_inf_interaction+ m5*cti + d5*inflammation + ne1*race + ne2*ethnicity + ne3*site + ne4*meds + ne5*sex + ne6*inc
+ofc4 ~ a6 * cti_inf_interaction+ m6*cti + d6*inflammation + nf1*race + nf2*ethnicity + nf3*site + nf4*meds + nf5*sex + nf6*inc
+ofc5 ~ a7 * cti_inf_interaction+ m7*cti + d7*inflammation + ng1*race + ng2*ethnicity + ng3*site + ng4*meds + ng5*sex + ng6*inc
+acc1 ~ a8 * cti_inf_interaction+ m8*cti + d8*inflammation + nh1*race + nh2*ethnicity + nh3*site + nh4*meds + nh5*sex + nh6*inc
+acc2 ~ a9 * cti_inf_interaction+ m9*cti + d9*inflammation + ni1*race + ni2*ethnicity + ni3*site + ni4*meds + ni5*sex + ni6*inc
+acc3 ~ a10 * cti_inf_interaction + m10*cti + d10*inflammation + nj1*race + nj2*ethnicity + nj3*site + nj4*meds + nj5*sex + nj6*inc
+acc4 ~ a11 * cti_inf_interaction + m11*cti + d11*inflammation + nk1*race + nk2*ethnicity + nk3*site + nk4*meds + nk5*sex + nk6*inc
+acc5 ~ a12 * cti_inf_interaction + m12*cti + d12*inflammation + nl1*race + nl2*ethnicity + nl3*site + nl4*meds + nl5*sex + nl6*inc
+acc6 ~ a13 * cti_inf_interaction + m13*cti + d13*inflammation + nm1*race + nm2*ethnicity + nm3*site + nm4*meds + nm5*sex + nm6*inc
+acc7 ~ a14 * cti_inf_interaction + m14*cti + d14*inflammation + nn1*race + nn2*ethnicity + nn3*site + nn4*meds + nn5*sex + nn6*inc
+indirect1 := a1 * b1
+indirect2 := a2 * b2
+indirect3 := a3 * b3
+indirect4 := a4 * b4
+indirect5 := a5 * b5
+indirect6 := a6 * b6
+indirect7 := a7 * b7
+indirect8 := a8 * b8
+indirect9 := a9 * b9
+indirect10 := a10 * b10
+indirect11 := a11 * b11
+indirect12 := a12 * b12
+indirect13 := a13 * b13
+indirect14 := a14 * b14
+totalindirect := indirect1 + indirect2 + indirect3 + indirect4 + indirect5 + indirect6 + indirect7 + indirect8 + indirect9 + indirect10 + indirect11 + indirect12 + indirect13 + indirect14
+total := c + indirect1 + indirect2 + indirect3 + indirect4 + indirect5 + indirect6 + indirect7 + indirect8 + indirect9 + indirect10 + indirect11 + indirect12 + indirect13 + indirect14
+
+'
+fit <- sem(model = multipleModeratedMediation, data = data, se = "bootstrap", bootstrap=1000)
+summary(fit)
+
+```
+
+## mediation Anhedonia-Apprehension
+
+```{r}
+multipleMediation <- '
+longAnhedonia ~ b1 * amyg1 + b2 * amyg2 + b3 * ofc1 + b4 * ofc2 + b5 * ofc3 + b6 * ofc4 + b7 * ofc5 + b8 * acc1 + b9 * acc2 + b10 * acc3 + b11 * acc4 + b12 * acc5 + b13 * acc6 + b14 * acc7 + c * inflammation + n1*race + n2*ethnicity + n3*site + n4*meds + n5*sex + n6*inc
+amyg1 ~ a1 * inflammation + na1*race + na2*ethnicity + na3*site + na4*meds + na5*sex + na6*inc
+amyg2 ~ a2 * inflammation+ nb1*race + nb2*ethnicity + nb3*site + nb4*meds + nb5*sex + nb6*inc
+ofc1 ~ a3 * inflammation+ nc1*race + nc2*ethnicity + nc3*site + nc4*meds + nc5*sex + nc6*inc
+ofc2 ~ a4 * inflammation+ nd1*race + nd2*ethnicity + nd3*site + nd4*meds + nd5*sex + nd6*inc
+ofc3 ~ a5 * inflammation+ ne1*race + ne2*ethnicity + ne3*site + ne4*meds + ne5*sex + ne6*inc
+ofc4 ~ a6 * inflammation+ nf1*race + nf2*ethnicity + nf3*site + nf4*meds + nf5*sex + nf6*inc
+ofc5 ~ a7 * inflammation+ ng1*race + ng2*ethnicity + ng3*site + ng4*meds + ng5*sex + ng6*inc
+acc1 ~ a8 * inflammation+ nh1*race + nh2*ethnicity + nh3*site + nh4*meds + nh5*sex + nh6*inc
+acc2 ~ a9 * inflammation+ ni1*race + ni2*ethnicity + ni3*site + ni4*meds + ni5*sex + ni6*inc
+acc3 ~ a10 * inflammation+ nj1*race + nj2*ethnicity + nj3*site + nj4*meds + nj5*sex + nj6*inc
+acc4 ~ a11 * inflammation+ nk1*race + nk2*ethnicity + nk3*site + nk4*meds + nk5*sex + nk6*inc
+acc5 ~ a12 * inflammation+ nl1*race + nl2*ethnicity + nl3*site + nl4*meds + nl5*sex + nl6*inc
+acc6 ~ a13 * inflammation+ nm1*race + nm2*ethnicity + nm3*site + nm4*meds + nm5*sex + nm6*inc
+acc7 ~ a14 * inflammation+ nn1*race + nn2*ethnicity + nn3*site + nn4*meds + nn5*sex + nn6*inc
+indirect1 := a1 * b1
+indirect2 := a2 * b2
+indirect3 := a3 * b3
+indirect4 := a4 * b4
+indirect5 := a5 * b5
+indirect6 := a6 * b6
+indirect7 := a7 * b7
+indirect8 := a8 * b8
+indirect9 := a9 * b9
+indirect10 := a10 * b10
+indirect11 := a11 * b11
+indirect12 := a12 * b12
+indirect13 := a13 * b13
+indirect14 := a14 * b14
+totalindirect := indirect1 + indirect2 + indirect3 + indirect4 + indirect5 + indirect6 + indirect7 + indirect8 + indirect9 + indirect10 + indirect11 + indirect12 + indirect13 + indirect14
+total := c + indirect1 + indirect2 + indirect3 + indirect4 + indirect5 + indirect6 + indirect7 + indirect8 + indirect9 + indirect10 + indirect11 + indirect12 + indirect13 + indirect14
+
+'
+fit <- sem(model = multipleMediation, data = data, se = "bootstrap", bootstrap=1000)
+summary(fit)
+
+```
+
+## moderated mediation
+
+```{r}
+multipleModeratedMediation <- '
+longAnhedonia ~ b1 * amyg1 + b2 * amyg2 + b3 * ofc1 + b4 * ofc2 + b5 * ofc3 + b6 * ofc4 + b7 * ofc5 + b8 * acc1 + b9 * acc2 + b10 * acc3 + b11 * acc4 + b12 * acc5 + b13 * acc6 + b14 * acc7 + c * inflammation + n1*race + n2*ethnicity + n3*site + n4*meds + n5*sex + n6*inc
+amyg1 ~ a1 * cti_inf_interaction + m1*cti + d1*inflammation + na1*race + na2*ethnicity + na3*site + na4*meds + na5*sex + na6*inc
+amyg2 ~ a2 * cti_inf_interaction + m2*cti + d2*inflammation + nb1*race + nb2*ethnicity + nb3*site + nb4*meds + nb5*sex + nb6*inc
+ofc1 ~ a3 * cti_inf_interaction + m3*cti + d3*inflammation + nc1*race + nc2*ethnicity + nc3*site + nc4*meds + nc5*sex + nc6*inc
+ofc2 ~ a4 * cti_inf_interaction+ m4*cti + d4*inflammation + nd1*race + nd2*ethnicity + nd3*site + nd4*meds + nd5*sex + nd6*inc
+ofc3 ~ a5 * cti_inf_interaction+ m5*cti + d5*inflammation + ne1*race + ne2*ethnicity + ne3*site + ne4*meds + ne5*sex + ne6*inc
+ofc4 ~ a6 * cti_inf_interaction+ m6*cti + d6*inflammation + nf1*race + nf2*ethnicity + nf3*site + nf4*meds + nf5*sex + nf6*inc
+ofc5 ~ a7 * cti_inf_interaction+ m7*cti + d7*inflammation + ng1*race + ng2*ethnicity + ng3*site + ng4*meds + ng5*sex + ng6*inc
+acc1 ~ a8 * cti_inf_interaction+ m8*cti + d8*inflammation + nh1*race + nh2*ethnicity + nh3*site + nh4*meds + nh5*sex + nh6*inc
+acc2 ~ a9 * cti_inf_interaction+ m9*cti + d9*inflammation + ni1*race + ni2*ethnicity + ni3*site + ni4*meds + ni5*sex + ni6*inc
+acc3 ~ a10 * cti_inf_interaction + m10*cti + d10*inflammation + nj1*race + nj2*ethnicity + nj3*site + nj4*meds + nj5*sex + nj6*inc
+acc4 ~ a11 * cti_inf_interaction + m11*cti + d11*inflammation + nk1*race + nk2*ethnicity + nk3*site + nk4*meds + nk5*sex + nk6*inc
+acc5 ~ a12 * cti_inf_interaction + m12*cti + d12*inflammation + nl1*race + nl2*ethnicity + nl3*site + nl4*meds + nl5*sex + nl6*inc
+acc6 ~ a13 * cti_inf_interaction + m13*cti + d13*inflammation + nm1*race + nm2*ethnicity + nm3*site + nm4*meds + nm5*sex + nm6*inc
+acc7 ~ a14 * cti_inf_interaction + m14*cti + d14*inflammation + nn1*race + nn2*ethnicity + nn3*site + nn4*meds + nn5*sex + nn6*inc
+indirect1 := a1 * b1
+indirect2 := a2 * b2
+indirect3 := a3 * b3
+indirect4 := a4 * b4
+indirect5 := a5 * b5
+indirect6 := a6 * b6
+indirect7 := a7 * b7
+indirect8 := a8 * b8
+indirect9 := a9 * b9
+indirect10 := a10 * b10
+indirect11 := a11 * b11
+indirect12 := a12 * b12
+indirect13 := a13 * b13
+indirect14 := a14 * b14
+totalindirect := indirect1 + indirect2 + indirect3 + indirect4 + indirect5 + indirect6 + indirect7 + indirect8 + indirect9 + indirect10 + indirect11 + indirect12 + indirect13 + indirect14
+total := c + indirect1 + indirect2 + indirect3 + indirect4 + indirect5 + indirect6 + indirect7 + indirect8 + indirect9 + indirect10 + indirect11 + indirect12 + indirect13 + indirect14
+
+'
+fit <- sem(model = multipleModeratedMediation, data = data, se = "bootstrap", bootstrap=1000)
+summary(fit)
+
+```

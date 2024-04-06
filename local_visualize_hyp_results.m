@@ -1,14 +1,15 @@
 
-mid = 0;
-rest = 1;
-visualize_pls_results = 1;
+mid = 1;
+rest = 0;
+visualize_pls_results = 0;
+compare_loadings_across_outcomes = 1;
 
 if visualize_pls_results == 1
     if mid == 1
-        cd('/Users/zacharyanderson/Documents/ACNlab/dissertation_final/mid_shortcuts/inflammation/')
+        cd('/Users/zacharyanderson/Documents/ACNlab/dissertation_final/mid_shortcuts/anhedonia')
     end
     if rest == 1
-        cd('/Users/zacharyanderson/Documents/ACNlab/dissertation_final/rest_shortcuts/inflammation')
+        cd('/Users/zacharyanderson/Documents/ACNlab/dissertation_final/rest_shortcuts/anhedonia')
     end
     load aligned_dist_model_results.mat
     load unaligned_dist_model_results.mat
@@ -32,8 +33,6 @@ if visualize_pls_results == 1
         totPCT(i,:,3) = dPCTVAR{i}(2,:);
         totPCT(i,:,2) = uPCTVAR(2,:);
         totPCT(i,:,4) = transformPCTVAR{i}(2,:);
-
-        %loadings_to_visualize(:,:,i) = reshape(transformXL{i}(:,1),[828,71]);
     end
 
     % visualize MSE
@@ -54,14 +53,43 @@ if visualize_pls_results == 1
     
     
     load('avg_z_and_brain.mat')
+    %figure(); montage(hypatl_avg)
+    %figure(); montage(hypatl_std)
 
-    figure(); montage(hypatl_avg)
-    figure(); montage(hypatl_std)
-
-    hypatl_avg.fullpath = '/Users/zacharyanderson/Documents/ACNlab/dissertation_final/rest_shortcuts/inflammation/hypatl_avg.nii';
-    write(hypatl_avg)
+    if mid == 1
+        hypatl_avg.fullpath = '/Users/zacharyanderson/Documents/ACNlab/dissertation_final/mid_shortcuts/anhedonia/hypatl_avg.nii';
+        write(hypatl_avg)
+    end
+    if rest == 1
+        hypatl_avg.fullpath = '/Users/zacharyanderson/Documents/ACNlab/dissertation_final/rest_shortcuts/anhedonia/hypatl_avg.nii';
+        write(hypatl_avg)    
+    end
+    
 
      
     
+
+end
+
+if compare_loadings_across_outcomes == 1
+    fnames = filenames(fullfile('/Users/zacharyanderson/Documents/ACNlab/dissertation_final/*shortcuts/*/avg_z_and_brain.mat'));
+    amid = load(fnames{1});
+    gmid = load(fnames{2});
+    imid = load(fnames{3});
+    arest = load(fnames{4});
+    grest = load(fnames{5});
+    irest = load(fnames{6});
+    
+    sim_mat = [amid.avg_z_table;gmid.avg_z_table;imid.avg_z_table;arest.avg_z_table;grest.avg_z_table;irest.avg_z_table];
+    sim_mat.Properties.RowNames = {'Anhedonia MID','GD MID','Inf MID','Anhedonia Rest','GD rest','Inf rest'};
+    
+    % similarity of features
+    figure();
+    featfig = heatmap(corr(table2array(sim_mat))); featfig.XDisplayLabels = sim_mat.Properties.VariableNames;
+    featfig.YDisplayLabels = sim_mat.Properties.VariableNames;
+    % similarity of outcomes
+    figure();
+    outfig = heatmap(corr(table2array(sim_mat)')); outfig.XDisplayLabels = sim_mat.Properties.RowNames;
+    outfig.YDisplayLabels = sim_mat.Properties.RowNames;
 
 end
