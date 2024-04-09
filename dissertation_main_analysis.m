@@ -6,9 +6,9 @@ mid = 1; rest = 0;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
-whole_brain_networks = 0; overwrite_nii = 0; 
+whole_brain_networks = 1; overwrite_nii = 0; 
 
-linear_seed_to_seed = 1; seeddir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
+linear_seed_to_seed = 0; seeddir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
 mediation_seed_to_seed = 0; % linear seed to see must be on
 moderated_mediation_seed_to_seed = 0;
 network_based_analyses = 0; overwrite_networks = 0; mediation_networks = 0; 
@@ -256,8 +256,9 @@ if whole_brain_networks == 1
     full_fnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
     final_brain = fmri_data(full_fnames);
     
-    %final_brain.X = ones(length(full_fnames),1); 
-    final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
+    final_brain.X = ones(length(full_fnames),1); 
+    %final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
+    
     if remove_missing_data == 1
         % remove NaNs related to inflammation
         final_brain.dat(:, isnan(regressors.inflammation(:,1))) = [];
@@ -283,6 +284,7 @@ if whole_brain_networks == 1
         final_brain.X(isnan(regressors.cti(:,1)),:) = [];
         regressors(isnan(regressors.cti(:,1)),:) = [];
     end
+    
     statobj = regress(final_brain);
     threshobj = threshold(statobj.t,0.001,'unc','k',10);
     orthviews(select_one_image(threshobj,1))
@@ -323,7 +325,7 @@ if linear_seed_to_seed == 1
     % ofc seitz idx = 105 111 116 117 118
     % acc seitz idx = 102 110 108 122 204 206 208
 
-    vs = atl; vs.dat(vs.dat>0) = 0; vs.dat(atl.dat==244)=1; vs.dat(atl.dat==245)=1;
+    vs = atl; vs.dat(vs.dat>0) = 0; vs.dat(atl.dat==246)=1; vs.dat(atl.dat==247)=1;
 
     amyg = atl; amyg.dat(amyg.dat>0) = 0; amyg.dat(atl.dat==244)=1; amyg.dat(atl.dat==245)=1;
 
@@ -338,7 +340,7 @@ if linear_seed_to_seed == 1
     ofc_data = extract_roi_averages(final_brain,ofc);
     acc_data = extract_roi_averages(final_brain,acc);
     vs_data = extract_roi_averages(final_brain,vs);
-    keyboard
+    
     seed2seed = array2table([amyg_data.dat,vs_data.dat,ofc_data.dat,acc_data.dat]); 
     seed2seed.Properties.VariableNames = {'amygdala','vs','ofc','acc'};
 

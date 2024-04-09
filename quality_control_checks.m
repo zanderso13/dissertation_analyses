@@ -1,26 +1,47 @@
+% this is getting converted into a connectivity matrix script
+
 cd /Users/zacharyanderson/Documents/ACNlab/BrainMAPD/PPI/dissertation_final_activation_data
 
-contrast = 'anticipation';yup
-fnames1 = filenames(fullfile(strcat('sub*/ses-2/',contrast,'/run-1/con_0001.nii')));
-fnames2 = filenames(fullfile(strcat('sub*/ses-2/',contrast,'/run-2/con_0001.nii')));
+fnames=;
 
-% find indices for run-1 and run-2 scans
-for sub = 1:length(fnames2)
-    PID{sub} = fnames2{sub}(1:9);
-    ind(sub,:) = [sub,find(contains(fnames1,PID{sub}))];
+if mid==1   
+    motion_exclude_temp = load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusion.mat'));
+    
+    % add exclusions for falling asleep, problems with scanner task, etc
+    admin_problems = {'10029','10319','10323','20025','20150','10230','10002','21057','21463'}; % incomplete scans, no timing files, asleep
+    preprocessing_quality = {'10341','10247','10461','21025','20133','20309','20507','21046','21163','21675','20133','20309'}; % scan artificats, bad grayplots
+    anatomical_quality = {'10141','20235','21417','21463'}; 
+    exclude_winnings = {'10001','10094','10102','10125','10140','10423','10443','10461','10471','20032','20108','20564','20674','21111','21223'};
+    temp_tot_list = [admin_problems,preprocessing_quality,anatomical_quality,exclude_winnings];
+    
+    for i = 1:length(temp_tot_list)
+        motion_exclude_temp.pid_exclude_list(contains(motion_exclude_temp.pid_exclude_list(:,1),temp_tot_list{i}),:)=[];
+    end
+    
+    pid_exclude_list = [temp_tot_list';motion_exclude_temp.pid_exclude_list(:,1)];
 end
+% if you want to do 0.3 fd cutoff for rest, you can actually just comment the final motion exclusion file out 
+if rest==1   
+    motion_exclude_temp = load(fullfile('/home/zaz3744/repo/dissertation_analyses/final_motion_exclusions_rest.mat'));
+    % add exclusions for falling asleep, problems with scanner task, etc
+    admin_problems = {'10004','21052','21163','21184'}; % incomplete scans, no timing files, asleep
+    preprocessing_quality = {'10001','10002','10006','10008','10010','10034','10041','10059',...
+        '10088','10090','10135','10272','10341','10422','20085','20123','20309','20464','21025',...
+        '21463'}; % scan artificats, bad grayplots, field of view
+    anatomical_quality = {'10141','20235','21417','21463'}; 
+    temp_tot_list = [admin_problems,preprocessing_quality,anatomical_quality];
+    
+    for i = 1:length(temp_tot_list)
+        motion_exclude_temp.pid_exclude_list(contains(motion_exclude_temp.pid_exclude_list(:,1),temp_tot_list{i}),:)=[];
+    end
+    
+    pid_exclude_list = [temp_tot_list';motion_exclude_temp.pid_exclude_list(:,1)];
+end 
 
-exclusions = {'10001','10084','10094','10102','10125','10140','10143','10148','10161','10264','10274','10296','10319',...
-  '10327','10422','10423','10434','10443','10461','10471',...
-  '20032','20050','20108','20309','20317','20507','20564',...
-  '20674','21111','21178','21223','21597','20877',... %,... % 20877 is missing specific trial types in one of the runs. 10272 only has one run
-  '20384',...% '21384' - originally excluded, after digging realized 21384 is real, 20384 is duplicate % these two scans are duplicates so one of them has to be wrong. Excluding both for now.
-  'sub-10006'	'sub-10074'	'sub-10111'	'sub-10141'	'sub-10161'	'sub-10196'	'sub-10236'	'sub-10264'	'sub-10272'	'sub-10274'	'sub-10282'	'sub-10296'	'sub-10308'	'sub-10341'	'sub-10434'	'sub-10459'	'sub-10481'	'sub-20150'	'sub-20309'	'sub-21597'	'sub-21684',... % motion exclusions >0.3
-  'sub-10074'	'sub-10111'	'sub-10141'	'sub-10161'	'sub-10236'	'sub-10264'	'sub-10296'	'sub-10341'	'sub-20150'}; % motion exclusion in run 1 >0.3
-%   '10272','10319',...
-%   '10196','10326','21127','20556','10177','21384','20627','21386','10236','21238'}; % these exclusions are from the outlier detection
-
-  
+% apply exclusions based on a >0.2mm FD MID or rest
+for exclude = 1:length(pid_exclude_list)
+    fnames(contains(fnames(:),pid_exclude_list{exclude,1})) = [];
+end  
   
 excludethis = zeros(length(PID),1);
 for sub = 1:length(exclusions)

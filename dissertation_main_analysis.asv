@@ -6,7 +6,7 @@ mid = 1; rest = 0;
 
 region_name_for_wholebrain_analysis = 'vs'; % vs amyg acc ofc
 
-whole_brain_networks = 0; overwrite_nii = 0; 
+whole_brain_networks = 1; overwrite_nii = 0; 
 
 linear_seed_to_seed = 0; seeddir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/seeds';
 mediation_seed_to_seed = 0; % linear seed to see must be on
@@ -24,9 +24,11 @@ hyper_analyze = 0; do_pls_regress = 0;
 
 hyper_analyze_transforms = 0; % visualize these pls results on transformations using the visualize_pls_results option
 
-visualize_pls_results = 1;
+visualize_pls_results = 0;
 
-mediation_with_hyp_transform = 0;
+make_mediation_with_hyp_transform = 0;
+
+transformation_mediation = 0;
 
 if mid == 1
     basedir = '/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats';
@@ -254,8 +256,9 @@ if whole_brain_networks == 1
     full_fnames = filenames(fullfile(basedir,strcat('/*',region_name_for_wholebrain_analysis,'*nii')));
     final_brain = fmri_data(full_fnames);
     
-    %final_brain.X = ones(length(full_fnames),1); 
-    final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
+    final_brain.X = ones(length(full_fnames),1); 
+    %final_brain.X = [regressors.inflammation.*regressors.cti,regressors.cti,regressors.inflammation,regressors.sex,regressors.site,regressors.meds,regressors.race,regressors.ethnicity,regressors.inc];
+    
     if remove_missing_data == 1
         % remove NaNs related to inflammation
         final_brain.dat(:, isnan(regressors.inflammation(:,1))) = [];
@@ -281,6 +284,7 @@ if whole_brain_networks == 1
         final_brain.X(isnan(regressors.cti(:,1)),:) = [];
         regressors(isnan(regressors.cti(:,1)),:) = [];
     end
+    
     statobj = regress(final_brain);
     threshobj = threshold(statobj.t,0.001,'unc','k',10);
     orthviews(select_one_image(threshobj,1))
@@ -321,7 +325,7 @@ if linear_seed_to_seed == 1
     % ofc seitz idx = 105 111 116 117 118
     % acc seitz idx = 102 110 108 122 204 206 208
 
-    vs = atl; vs.dat(vs.dat>0) = 0; vs.dat(atl.dat==244)=1; vs.dat(atl.dat==245)=1;
+    vs = atl; vs.dat(vs.dat>0) = 0; vs.dat(atl.dat==246)=1; vs.dat(atl.dat==247)=1;
 
     amyg = atl; amyg.dat(amyg.dat>0) = 0; amyg.dat(atl.dat==244)=1; amyg.dat(atl.dat==245)=1;
 
@@ -336,7 +340,7 @@ if linear_seed_to_seed == 1
     ofc_data = extract_roi_averages(final_brain,ofc);
     acc_data = extract_roi_averages(final_brain,acc);
     vs_data = extract_roi_averages(final_brain,vs);
-
+    
     seed2seed = array2table([amyg_data.dat,vs_data.dat,ofc_data.dat,acc_data.dat]); 
     seed2seed.Properties.VariableNames = {'amygdala','vs','ofc','acc'};
 
@@ -1103,10 +1107,10 @@ end
 
 if visualize_pls_results == 1
     if mid == 1
-        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/shortcuts/inflammation')
+        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/shortcuts/anhedonia')
     end
     if rest == 1
-        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/hyperalignment_results/shortcuts/inflammation')
+        cd('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/rest_corr_matrices/hyperalignment_results/shortcuts/anhedonia')
     end
     load aligned_dist_model_results.mat
     load unaligned_dist_model_results.mat
@@ -1238,7 +1242,7 @@ if visualize_pls_results == 1
     
 end
 
-if mediation_with_hyp_transform == 1
+if make_mediation_with_hyp_transform == 1
     if mid == 1
         transform_files = filenames(fullfile('/projects/b1108/studies/brainmapd/data/processed/neuroimaging/mid_corr_matrices/final_corr_mats/hyperalignment_results/*transforms*.mat'));
     end
@@ -1306,8 +1310,13 @@ if mediation_with_hyp_transform == 1
     end
     
     
+    % run the command below to save mediation input in the transformation
+    % mediation folder that you should create in each directory. Running
+    % those models will be a separate section
 
-%     results_amyg = mediation(outcome, symptom, zscore(mean(bilateral_amyg,2)),'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
+    %save transformation_mediation_input_mid.mat amyg1 amyg2 ofc1 ofc2 ofc3 ofc4 ofc5 acc1 acc2 acc3 acc4 acc5 acc6 acc7 regressors
+
+    %     results_amyg = mediation(outcome, symptom, zscore(mean(bilateral_amyg,2)),'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
 %     results_ofc = mediation(outcome, symptom, zscore(mean(bilateral_ofc,2)),'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
 %     results_acc = mediation(outcome, symptom, zscore(mean(bilateral_acc,2)),'names',{'X:inflammation' 'Y:longitudinalsymptom' 'M:Reward'},'verbose','plots','doCIs','covs',[regressors.site,regressors.sex,regressors.ethnicity,regressors.race,regressors.inc,regressors.meds]);    
 
