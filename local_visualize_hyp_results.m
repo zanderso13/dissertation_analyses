@@ -86,6 +86,7 @@ if compare_loadings_across_outcomes == 1
     grest = load(fnames{5});
     irest = load(fnames{6});
     
+    
     sim_mat = [amid.avg_z_table;gmid.avg_z_table;imid.avg_z_table;arest.avg_z_table;grest.avg_z_table;irest.avg_z_table];
     sim_mat.Properties.RowNames = {'Anhedonia MID','GD MID','Inf MID','Anhedonia Rest','GD rest','Inf rest'};
     
